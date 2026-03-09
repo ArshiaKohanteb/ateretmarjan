@@ -4,347 +4,121 @@ permalink: /shul-wall/ateret-marjan
 layout: nothing
 ---
 
-<link id="bs" href="/assets/libraries/bootstrap/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous"/>
-<link href="/assets/fonts/external-message/stylesheet.css" rel="stylesheet" />
-<link href="/assets/fonts/ish-matzliach-font/stylesheet.css" rel="stylesheet" />
-<link href="/assets/fonts/narkisim/stylesheet.css" rel="stylesheet" />
+{%- comment -%}
+  ═══════════════════════════════════════════════════════════════
+  Ateret Marjan — Custom React Signage UI
+  
+  This page replaces the original shul-wall display with a modern
+  React-based UI while keeping all the existing KosherZmanim
+  calculation engine intact.
+  
+  HOW IT WORKS:
+  1. The <script id="zy-scheduleScreen-config"> block configures 
+     the location, halachic settings, and schedule source
+  2. bridge.js imports base.js (which reads the config) and runs 
+     all the same calculations as the original scripts
+  3. bridge.js exposes results on window.__SHUL_DATA__
+  4. The React app (loaded via <script type="module">) listens for 
+     the "shul-data-ready" event and hydrates the UI
+  5. scheduleOnline.js still fetches from Google Sheets — bridge.js
+     listens for that too and updates React state
+  ═══════════════════════════════════════════════════════════════
+{%- endcomment -%}
 
-<link href="/assets/css/shul-wall/marquee.css" rel="stylesheet" />
-<link href="/assets/css/shul-wall/clock.css" rel="stylesheet">
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&family=Frank+Ruhl+Libre:wght@300;400;500;700&display=swap" rel="stylesheet">
 
 <style>
-	body {
-		transform: rotate(180deg);
-	}
-
-	#content {
-		width: 100%;
-		height: 100dvh;
-		display: grid;
-		background-image: url("/assets/images/shul-wall/west-wall-fade.png");
-		background-size: cover;
-        color: black;
-        font-family: 'TT Commons Pro', var(--bs-body-font-family);
-	}
-
-	#content > * {
-		grid-area: 1 / 1;
-	}
-
-	#background {
-		--margin: 1.25vw;
-		margin: var(--margin);
-		height: calc(100vh - var(--margin) - var(--margin) - var(--margin));
-		width: calc(100% - var(--margin) - var(--margin));
-        background: #FFFFFFBB;
-		border-radius: 3rem;
-	}
-
-	#clock {
-		font-size: 4em;
-		font-family: "dharma_gothic_e";
-	}
-
-	#topBar {
-		text-align: center;
-		display: flex;
-		justify-content: space-evenly;
-		width: 72.5%;
-		justify-self: center;
-		align-self: start;
-		color: #30344F;
-		z-index: 3;
-		line-height: 1;
-		padding-top: .25rem;
-        padding-left: 1.5rem;
-        padding-bottom: .25rem;
-		align-items: center;
-		font-size: 1.65rem;
-        background: #FFFFFF88;
-		filter: drop-shadow(0px 5px 4px rgba(0,0,0,.5));
-
-        border-bottom-left-radius: 3.5rem;
-		border-bottom-right-radius: 3.5rem;
-        border: 1px solid #d8a736;
-        border-top: none;
-	}
-
-	#topBar > * {
-		flex: 1 1;
-	}
-
-	#topBar svg {
-		height: 1em;
-		width: 1em;
-		vertical-align: bottom;
-	}
-
-	#topBar svg path {
-		fill: #30344F;
-	}
-
-	#quickTimes {
-		display: grid; justify-content: center;
-	}
-
-	#quickTimes i {
-		width: 1em;
-		text-align: center;
-	}
-
-	#bsD {
-        font-family: "Narkisim";
-		justify-self: end;
-		line-height: 1;
-		padding-right: 2rem;
-		color: #000000;
-		font-size: 4.5rem;
-		padding-top: 1.5rem;
-		align-self: start;
-		z-index: 3;
-    }
-
-	#dataGrid {
-		width: calc(100% - 4vw);
-		height: calc(100dvh - 3.25vw - 13dvh); /* bottom-height - top-height */
-		margin-left: 2vw;
-		margin-top: 13dvh;
-		z-index: 5;
-		display: grid;
-		grid-template-columns: 1fr .85fr 1fr;
-		grid-template-rows: 1fr auto;
-		align-items: center;
-		gap: 12px;
-		font-size: .8rem;
-	}
-
-	#dataGrid > *:not(.wideView):not(:nth-child(2)) {
-		font-size: 2.15rem;
-	}
-
-	#dataGrid .h1,
-	#dataGrid h1 {
-		font-size: 1.25rem;
-	}
-
-	#gne {
-		height: 15dvh;
-		justify-self: start;
-		align-self: start;
-		margin-top: 1.75rem;
-		margin-left: 1.75rem;
-		z-index: 3;
-    }
-
-	.wideView {
-		display: flex;
-		text-align: center;
-		align-self: end;
-		grid-column: 1 / span 3;
-		font-size: 1.65em;
-	}
-
-	.wideView > * {
-		flex: 1 1;
-		padding: 6px;
-		padding-top: 0;
-
-		display: flex;
-		justify-content: space-between;
-		flex-direction: column;
-	}
-
-	.wideView > *:first-child {
-		padding-left: 0;
-	}
-
-	.wideView > *:last-child {
-		padding-right: 0;
-	}
-
-	.wideView > *:not(:last-child) {
-		border-right:1px solid black;
-	}
-
-	article > .langTV {
-		font-weight: bold;
-		margin-bottom: .25rem;
-	}
-
-	#poweredBy {
-		justify-self: center;
-		align-self: end;
-		margin-bottom: .75vw;
-		text-align: center;
-		line-height: 1.2;
-		font-size: .95rem;
-        font-weight: bold;
-	}
-
-    #dataGrid .card, #dataGrid .list-group-item {
-        border: none;
-    }
-
-	#dataGrid .list-group-item {
-		--bs-list-group-item-padding-y: .25rem;
-		--bs-list-group-border-color: transparent;
-        --bs-list-group-bg: transparent;
-        --bs-list-group-color: black;
-		--bs-list-group-item-padding-x: 1.25rem;
-	}
-
-	.list-group {
-		--bs-list-group-bg: transparent;
-	}
-
-	.card {
-		--bs-card-bg: transparent;
-	}
-
-	.timeDisplayWide.nextDay::before {
-		content: "(Tomorrow)";
-		font-size: .75em;
-		margin-bottom: -5px;
-		display: block;
-    }
-
-    #location {
-        align-self: start;
-        justify-self: center;
-        padding-top: 10.5dvh;
-        text-align: center;
-        line-height: 1;
-        color: #d8a736;
-        font-weight: 500;
-		font-size: 1.2rem;
-    }
-
-	.carousel-item > img {
-		height: 65vh;
-		object-fit: contain;
-	}
+  /* Reset body rotation from original (was rotated 180deg for specific TV mount) */
+  /* Remove this if your TV is mounted upside-down like the original setup */
+body {
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  background: #0A0E1A;
+}
+  #react-root {
+    width: 100vw;
+    height: 100vh;
+  }
 </style>
 
-<div id="content">
-	<div id="bsD">בס“ד</div>
-	<img id="gne" src="/assets/images/shul-wall/AM-LOGO-1368x1536.png" />
-	<div id="background"></div>
-    <div id="shulBar"></div>
-	<div id="poweredBy">
-		Powered using זמני יוסף, developed by Maor Na'im. All Halachic times based on Maran Ovadia Yosef zt"l
-	</div>
-	<div id="topBar">
-		<div>
-			<span data-en-date></span>
-			<hr style="margin: .25rem 0">
-			<span data-hb-date></span>
-		</div>
-		<div id="clock"><span data-sw-hour></span><span class="blink">:</span><span data-sw-minute></span> <span data-sw-portion></span></div>
-		<div id="quickTimes">
-			<div style="text-align: left; width: fit-content">
-				<div style="text-align: center; font-weight: bold; font-size: 1.15em;" data-parasha></div>
-				<div data-lightingCandles><i class="bi bi-fire"></i> </div>
-				<div data-tzetShab data-rt-text='R"T'><svg viewBox="0 0 100 100"><use href="/assets/images/havdalah.svg#Layer_1"/></svg> </div>
-			</div>
-		</div>
-	</div>
-	<div id="dataGrid">
-		<div style="line-height: 1.3;">
-			<h1 class="text-center mb-0 pt-3" style="font-size: 2.75rem;">Limudim</h1>
-			<dl class="list-group list-group-flush lh-sm" data-zfFind="DafYomi">
-				{% for item in site.data.tv.learningShaareTefila %}
-				<div class="list-group-item d-flex justify-content-between">
-					<dt>{{ item.text.en.full }}</dt>
-					<dd class="m-0" data-zfReplace="{{item.limud}}"></dd>
-				</div>
-				{% endfor %}
-			</dl>
-			<h1 class="text-center mb-0 pt-3" style="font-size: 2.75rem;">Hiloulot of...</h1>
-			<div class="card hiloulotCard">
-				<div class="marquee" style="height: 175px; --length: 27.5s;">
-					<ul class="list-group list-group-flush marquee__content" data-fillText="There aren't any today" data-zfFind="hiloulah" data-zfIndex="en">
-						<li class="list-group-item">There aren't any today</li>
-					</ul>
-					<ul class="list-group list-group-flush marquee__content" data-fillText="There aren't any today" data-zfFind="hiloulah" data-zfIndex="en">
-						<li class="list-group-item">There aren't any today</li>
-					</ul>
-				</div>
-			</div>
-		</div>
-		<div id="ishMatzliachSlide" class="carousel slide" data-bs-ride="carousel">
-			<div class="carousel-inner">
-			</div>
-		</div>
-		<div>
-			<h1 class="text-center mb-0" style="font-size: 4rem; line-height: 1;">Shabbat Schedule</h1>
-			<h3 class="text-center" style="font-size: 2rem;" id="makam" data-zfReplace="makamot">🎵Makam </h3>
-			<div class="card" style="line-height: 1.25;">
-				<zman-schedule class="list-group list-group-flush" id="youth">
-				</zman-schedule>
-			</div>
-		</div>
-		<section class="wideView" data-zfFind="calendarFormatter" data-langPull="en">
-			{% for item in site.data.tv.listTVZman %}
-				<article
-					data-zmanid="{{ item.id }}"
-					{% if item.round %}data-round="{{ item.round }}"{% endif %}
-					{% if item.timeGetter %}data-timeGetter="{{ item.timeGetter }}"{% endif %}
-					{% if item.attributes.luachInclusive %}data-luachInclusive="{{ item.attributes.luachInclusive }}"{% endif %}
-					{% if item.attributes.yomTovInclusive %}data-yomTovInclusive="{{ item.attributes.yomTovInclusive }}"{% endif %}
-					{% if item.attributes.condition %}data-condition="{{ item.attributes.condition }}"{% endif %}
-				>
-					<span class="langTV lang-en">{{ item.names.en }}</span>
-					<span class="timeDisplay"></span>
-				</article>
-			{% endfor %}
-		</section>
-	</div>
+<!-- Mount point for React -->
+<div id="react-root"></div>
+
+<!-- Hidden container for scheduleOnline.js to write into -->
+<div id="dataGrid" style="display:none;">
+  <zman-schedule class="list-group list-group-flush" id="youth"></zman-schedule>
+  <section class="wideView" data-zfFind="calendarFormatter" data-langPull="en">
+    {% for item in site.data.tv.listTVZman %}
+    <article
+      data-zmanid="{{ item.id }}"
+      {% if item.round %}data-round="{{ item.round }}"{% endif %}
+      {% if item.timeGetter %}data-timeGetter="{{ item.timeGetter }}"{% endif %}
+      {% if item.attributes.luachInclusive %}data-luachInclusive="{{ item.attributes.luachInclusive }}"{% endif %}
+      {% if item.attributes.yomTovInclusive %}data-yomTovInclusive="{{ item.attributes.yomTovInclusive }}"{% endif %}
+      {% if item.attributes.condition %}data-condition="{{ item.attributes.condition }}"{% endif %}
+    >
+      <span class="langTV lang-en">{{ item.names.en }}</span>
+      <span class="timeDisplay"></span>
+    </article>
+    {% endfor %}
+  </section>
 </div>
 
+<!--
+  ═══════════════════════════════════════════════════
+  CONFIGURATION — Edit this block to change location, 
+  halachic settings, and schedule source
+  ═══════════════════════════════════════════════════
+-->
 <script id="zy-scheduleScreen-config" type="application/json">
-	{
-		"seconds": false,
-		"timeFormat": "h12",
-		"language": "en",
-		"location": {
-			"name": "Ateret Marjan",
-			"lat": 34.164749,
-			"long": -118.525887,
-			"elevation": 0,
-			"timezone": "America/Los_Angeles"
-		},
-		"calendarToggle": {
-			"rtKulah": true,
-			"tekufaMidpoint": "hatzoth",
-			"tekufaCalc": "shemuel",
-			"forceSunSeasonal": false
-		},
-		"customTimes": {
-			"candleLighting": 20,
-			"tzeithIssurMelakha": { "minutes": 30, "degree": 7.165 }
-		},
-		"schedule": {
-			"url": "https://docs.google.com/spreadsheets/d/102b9M_rgEN9DFkSFVD6KGIeCD8Zb04PUt1X08hYwgzQ/export?format=xlsx",
-			"type": "excel"
-		}
-	}
+  {
+    "seconds": false,
+    "timeFormat": "h12",
+    "language": "en",
+    "location": {
+      "name": "Ateret Marjan",
+      "lat": 34.164749,
+      "long": -118.525887,
+      "elevation": 0,
+      "timezone": "America/Los_Angeles"
+    },
+    "calendarToggle": {
+      "rtKulah": true,
+      "tekufaMidpoint": "hatzoth",
+      "tekufaCalc": "shemuel",
+      "forceSunSeasonal": false
+    },
+    "customTimes": {
+      "candleLighting": 20,
+      "tzeithIssurMelakha": { "minutes": 30, "degree": 7.165 }
+    },
+    "schedule": {
+      "url": "https://docs.google.com/spreadsheets/d/102b9M_rgEN9DFkSFVD6KGIeCD8Zb04PUt1X08hYwgzQ/export?format=xlsx",
+      "type": "excel"
+    }
+  }
 </script>
-<script type="module" src="/assets/js/shul-wall/date-and-time.js"></script>
-<script type="module" src="/assets/js/shul-wall/reset.js"></script>
-<script type="module" src="/assets/js/shul-wall/parasha.js"></script>
-<script type="module" src="/assets/js/shul-wall/times.js"></script>
-<script type="module" src="/assets/js/shul-wall/limud.js"></script>
-<script type="module" src="/assets/js/shul-wall/sidebar.js"></script>
-<script type="module" src="/assets/js/shul-wall/pageFlip.js"></script>
-<script type="module" src="/assets/js/shul-wall/scheduleOnline.js"></script>
-<script type="module">
-	/* const flyerURLs = (await (await fetch('https://zemaneh-yosef.github.io/extras/ls.txt')).text())
-		.split('\n')
-		.filter(str => str.startsWith('./ateret-marjan/events/'))
 
-	const carousel = document.getElementById('ishMatzliachSlide');
-	carousel.firstElementChild.innerHTML = flyerURLs
-		.map((url, index) =>
-			`<div class="carousel-item ${index == 0 ? "active" : ''}"><img src="${url.replace('./', 'https://zemaneh-yosef.github.io/extras/')}" class="d-block w-100"></div>`)
-		.join(''); */
-</script>
+<!-- 
+  Load the bridge module — this runs all KosherZmanim calculations
+  and exposes results on window.__SHUL_DATA__ 
+-->
+<script type="module" src="/assets/js/shul-wall/bridge.js"></script>
+
+<!-- 
+  Still load scheduleOnline.js for Google Sheets schedule fetching.
+  The bridge will also listen for DOM changes and relay schedule data to React.
+-->
+<script type="module" src="/assets/js/shul-wall/scheduleOnline.js"></script>
+
+<!-- Auto-reload at midnight / when zmanim pass -->
+<script type="module" src="/assets/js/shul-wall/reset.js"></script>
+
+<!--
+  React UI — Built IIFE bundle (includes React, no imports needed)
+  Rebuild with: cd signage-build && npm run build
+-->
+<script src="/assets/js/shul-wall/react-signage.js?v=20260309"></script>

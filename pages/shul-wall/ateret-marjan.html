@@ -106,19 +106,19 @@ body {
   Load the bridge module — this runs all KosherZmanim calculations
   and exposes results on window.__SHUL_DATA__ 
 -->
-<script type="module" src="/assets/js/shul-wall/bridge.js"></script>
+<script type="module" src="/{{ site.baseurl }}/assets/js/shul-wall/bridge.js"></script>
 
 <!-- 
   Still load scheduleOnline.js for Google Sheets schedule fetching.
   The bridge will also listen for DOM changes and relay schedule data to React.
 -->
-<script type="module" src="/assets/js/shul-wall/scheduleOnline.js"></script>
+<script type="module" src="/{{ site.baseurl }}/assets/js/shul-wall/scheduleOnline.js"></script>
 
 <!-- Auto-reload at midnight / when zmanim pass -->
-<script type="module" src="/assets/js/shul-wall/reset.js"></script>
+<script type="module" src="/{{ site.baseurl }}/assets/js/shul-wall/reset.js"></script>
 
 <!--
   React UI — Built IIFE bundle (includes React, no imports needed)
   Rebuild with: cd signage-build && npm run build
 -->
-<script src="/assets/js/shul-wall/react-signage.js?v=20260309"></script>
+<script src="/{{ site.baseurl }}/assets/js/shul-wall/react-signage.js?v=20260309"></script>

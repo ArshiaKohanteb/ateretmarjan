@@ -34,8 +34,6 @@ jobs:
       - name: Install JS dependencies
         run: pnpm install
 
-      - name: Build JS assets
-        run: pnpm run build   # adjust if your build script has a different name
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1

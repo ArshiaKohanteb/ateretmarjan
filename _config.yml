@@ -1,10 +1,10 @@
-url              : "https://arshiakohanteb.github.io"
-baseurl          : ""
+url: "https://ateretmarjan.org"
+baseurl: ""
 
-host         : 0.0.0.0
-title        : "Zemaneh Yosef/זמני יוסף"
-description  : "Use our website to get Halachic times for anywhere in the world, in compliance with the Sepharadi Shita's of Maran Ovadia Yosef, Rabbi Yitzhak Yosef & Rabbi David Yosef"
-markdown_ext : "markdown,mkdown,mkdn,mkd,md"
+host: 0.0.0.0
+title: "Zemaneh Yosef/זמני יוסף"
+description: "Use our website to get Halachic times for anywhere in the world, in compliance with the Sepharadi Shita's of Maran Ovadia Yosef, Rabbi Yitzhak Yosef & Rabbi David Yosef"
+markdown_ext: "markdown,mkdown,mkdn,mkd,md"
 
 compress_html:
   comments: ["<!-- ", " -->"]
@@ -14,5 +14,4 @@ defaults:
       path: "pages"
       type: pages
     values:
-      permalink: /:basename:output_ext
       layout: "default"

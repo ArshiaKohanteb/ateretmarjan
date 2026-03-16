@@ -311,8 +311,8 @@ async function calculate() {
     computedLimudim = [
       { study: "Babylonian Talmud",  ref: allLearning.dafBavli      || "" },
       { study: "Yerushalmi (Vilna)", ref: allLearning.DafYerushalmi || "" },
-      { study: "Psalms (Monthly)",   ref: allLearning.TehilimHodshi || "" },
-      { study: "Psalms (Weekly)",    ref: allLearning.TehilimShvui  || "" },
+      { study: "Tehillim (Monthly)", ref: allLearning.TehilimHodshi || "" },
+      { study: "Tehillim (Weekly)",  ref: allLearning.TehilimShvui  || "" },
     ];
     console.log("[bridge.js] ✅ limudim computed");
   } catch (e) {

@@ -36,8 +36,8 @@
       short: תהילים (חדשי)
       full: תהילים יומי (חדשי)
     en:
-      short: Psalms (Monthly)
-      full: Daily Psalms (Monthly)
+      short: Tehillim (Monthly)
+      full: Daily Tehillim (Monthly)
     et:
       short: Tehilim (Monthly)
       full: Tehilim Yomi (Monthly)
@@ -50,8 +50,8 @@
       short: תהילים (שבועי)
       full: תהילים יומי (שבועי)
     en:
-      short: Psalms (Weekly)
-      full: Daily Psalms (Weekly)
+      short: Tehillim (Weekly)
+      full: Daily Tehillim (Weekly)
     et:
       short: Tehilim (Weekly)
       full: Tehilim Yomi (Weekly)

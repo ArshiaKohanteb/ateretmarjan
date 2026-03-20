@@ -3,6 +3,8 @@
 // ═══════════════════════════════════════════════════════════════
 
 import { Temporal } from "../../libraries/kosherZmanim/kosher-zmanim.js";
+import { Makam } from "../../libraries/kosherZmanim/kosher-zmanim.js";
+import { HiloulahYomiCalculator } from "../../libraries/kosherZmanim/kosher-zmanim.js";
 import { zDTFromFunc } from "../ROYZmanim.js";
 import { scheduleSettings, getCurrentZDT, getJCal, getZmanCalc, dtF } from "./base.js";
 import n2wordsOrdinal from "../misc/n2wordsOrdinal.js";
@@ -41,8 +43,9 @@ async function calculate() {
 
   // ── 2. Parasha & candle lighting ──
   let parashaName = "", candleLightingTime = "", havdalahTime = "", rabbeinuTamTime = "";
+  let melakhaJCal = null;
   try {
-    let melakhaJCal = jCal.shabbat();
+    melakhaJCal = jCal.shabbat();
     for (const loopJCal = jCal.clone(); !loopJCal.getDate().equals(melakhaJCal.getDate()); loopJCal.forward(5, 1)) {
       if (loopJCal.isAssurBemelacha()) { melakhaJCal = loopJCal.clone(); break; }
     }
@@ -74,6 +77,24 @@ async function calculate() {
     console.log("[bridge.js] ✅ parasha:", parashaName, "| candles:", candleLightingTime, "| havdalah:", havdalahTime);
   } catch (e) {
     console.error("[bridge.js] ❌ parasha/candles/havdalah failed:", e);
+  }
+
+  // ── 2b. Makam ──
+  let computedMakam = "";
+  try {
+    if (melakhaJCal) {
+      const makamObj = await (await fetch("/assets/js/makamObj.json")).json();
+      const makamIndex = new Makam(makamObj.sefarimList);
+      const makamResult = makamIndex.getTodayMakam(melakhaJCal);
+      if (makamResult && makamResult.makam) {
+        computedMakam = "Makam " + makamResult.makam
+          .map(mak => (typeof mak === "number" ? makamObj.makamNameMapEng[mak] : mak))
+          .join(" / ");
+      }
+      console.log("[bridge.js] ✅ makam:", computedMakam);
+    }
+  } catch (e) {
+    console.error("[bridge.js] ❌ makam failed:", e);
   }
 
   // ── 3. Zmanim ──
@@ -140,6 +161,20 @@ async function calculate() {
     console.error("[bridge.js] ❌ limudim failed:", e);
   }
 
+  // ── 4b. Hiloulot ──
+  let computedHiloulot = [];
+  try {
+    const hiloulahIndex = new HiloulahYomiCalculator();
+    await hiloulahIndex.init();
+    const hiloulahData = hiloulahIndex.getHiloulah(jCal);
+    if (hiloulahData && hiloulahData.en && hiloulahData.en.length > 0) {
+      computedHiloulot = hiloulahData.en.map(h => ({ name: h.name }));
+    }
+    console.log("[bridge.js] ✅ hiloulot:", computedHiloulot.length, "entries");
+  } catch (e) {
+    console.error("[bridge.js] ❌ hiloulot failed:", e);
+  }
+
   // ── 5. Expose & dispatch ──
   window.__SHUL_DATA__ = {
     ready:          true,
@@ -154,8 +189,8 @@ async function calculate() {
     rabbeinuTam:    rabbeinuTamTime,
     zmanim:         computedZmanim,
     limudim:        computedLimudim,
-    hiloulot:       [],  // removed — was causing fatal 404 crash
-    makam:          "",  // removed — was causing fatal 404 crash
+    hiloulot:       computedHiloulot,
+    makam:          computedMakam,
   };
 
   window.dispatchEvent(new CustomEvent("shul-data-ready", { detail: window.__SHUL_DATA__ }));

@@ -7,185 +7,6 @@ import { zDTFromFunc } from "../ROYZmanim.js";
 import { scheduleSettings, getCurrentZDT, getJCal, getZmanCalc, dtF } from "./base.js";
 import n2wordsOrdinal from "../misc/n2wordsOrdinal.js";
 
-// ─── STORAGE KEYS ───
-const STORAGE_KEY_ZOOM           = "shul-wall-zoom";
-const STORAGE_KEY_ZMANIM_ENABLED = "shul-wall-zmanim-enabled";
-
-// ─── STATE ───
-let zmanimEnabled = localStorage.getItem(STORAGE_KEY_ZMANIM_ENABLED) !== "false";
-let zoomLevel     = parseFloat(localStorage.getItem(STORAGE_KEY_ZOOM) || "1");
-
-// Apply zoom immediately on load
-applyZoom(zoomLevel);
-
-// ─── ZOOM HELPER ───
-function applyZoom(level) {
-  document.documentElement.style.zoom = level;
-  localStorage.setItem(STORAGE_KEY_ZOOM, String(level));
-}
-
-// ─── INJECT ADMIN CONTROLS ───
-function injectAdminControls() {
-  if (document.getElementById("shul-admin-panel")) return;
-
-  const panel = document.createElement("div");
-  panel.id = "shul-admin-panel";
-  panel.innerHTML = `
-    <style>
-      #shul-admin-toggle {
-        position: fixed;
-        bottom: 16px;
-        right: 16px;
-        z-index: 9999;
-        background: rgba(0,0,0,0.7);
-        color: white;
-        border: none;
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        font-size: 20px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        backdrop-filter: blur(4px);
-      }
-      #shul-admin-drawer {
-        position: fixed;
-        bottom: 68px;
-        right: 16px;
-        z-index: 9998;
-        background: rgba(10,10,20,0.92);
-        color: white;
-        border-radius: 12px;
-        padding: 20px 24px;
-        min-width: 260px;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-        backdrop-filter: blur(8px);
-        font-family: system-ui, sans-serif;
-        font-size: 14px;
-        display: none;
-        flex-direction: column;
-        gap: 18px;
-      }
-      #shul-admin-drawer.open { display: flex; }
-      #shul-admin-drawer h3 {
-        margin: 0 0 2px;
-        font-size: 15px;
-        font-weight: 600;
-        color: #a0c4ff;
-        letter-spacing: 0.03em;
-      }
-      .shul-admin-row {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-      }
-      .shul-admin-label {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-size: 13px;
-        color: #ccc;
-      }
-      #shul-zoom-slider {
-        width: 100%;
-        accent-color: #a0c4ff;
-        cursor: pointer;
-      }
-      #shul-zoom-value {
-        font-size: 12px;
-        color: #a0c4ff;
-        font-weight: 600;
-        min-width: 38px;
-        text-align: right;
-      }
-      .shul-toggle-wrap {
-        position: relative;
-        display: inline-block;
-        width: 44px;
-        height: 24px;
-        flex-shrink: 0;
-      }
-      .shul-toggle-wrap input { opacity: 0; width: 0; height: 0; position: absolute; }
-      .shul-toggle-track {
-        position: absolute;
-        inset: 0;
-        background: #444;
-        border-radius: 24px;
-        transition: background 0.2s;
-        cursor: pointer;
-      }
-      .shul-toggle-track::before {
-        content: "";
-        position: absolute;
-        height: 18px;
-        width: 18px;
-        left: 3px;
-        bottom: 3px;
-        background: white;
-        border-radius: 50%;
-        transition: transform 0.2s;
-      }
-      .shul-toggle-wrap input:checked + .shul-toggle-track { background: #4a9eff; }
-      .shul-toggle-wrap input:checked + .shul-toggle-track::before { transform: translateX(20px); }
-    </style>
-
-    <button id="shul-admin-toggle" title="Display Settings">⚙️</button>
-
-    <div id="shul-admin-drawer">
-      <h3>Display Settings</h3>
-
-      <div class="shul-admin-row">
-        <div class="shul-admin-label">
-          <span>Screen Zoom</span>
-          <span id="shul-zoom-value">${Math.round(zoomLevel * 100)}%</span>
-        </div>
-        <input
-          type="range"
-          id="shul-zoom-slider"
-          min="0.5"
-          max="2"
-          step="0.05"
-          value="${zoomLevel}"
-        />
-      </div>
-
-      <div class="shul-admin-row">
-        <div class="shul-admin-label">
-          <span>Show Zmanim</span>
-          <label class="shul-toggle-wrap">
-            <input type="checkbox" id="shul-zmanim-checkbox" ${zmanimEnabled ? "checked" : ""} />
-            <span class="shul-toggle-track"></span>
-          </label>
-        </div>
-      </div>
-    </div>
-  `;
-
-  document.body.appendChild(panel);
-
-  document.getElementById("shul-admin-toggle").addEventListener("click", () => {
-    document.getElementById("shul-admin-drawer").classList.toggle("open");
-  });
-
-  document.getElementById("shul-zoom-slider").addEventListener("input", (e) => {
-    const val = parseFloat(e.target.value);
-    zoomLevel = val;
-    applyZoom(val);
-    document.getElementById("shul-zoom-value").textContent = Math.round(val * 100) + "%";
-  });
-
-  document.getElementById("shul-zmanim-checkbox").addEventListener("change", (e) => {
-    zmanimEnabled = e.target.checked;
-    localStorage.setItem(STORAGE_KEY_ZMANIM_ENABLED, String(zmanimEnabled));
-    if (window.__SHUL_DATA__) {
-      window.__SHUL_DATA__.zmanimEnabled = zmanimEnabled;
-      window.dispatchEvent(new CustomEvent("shul-data-ready", { detail: window.__SHUL_DATA__ }));
-    }
-  });
-}
-
 // ─── MAIN CALCULATION FUNCTION ───
 async function calculate() {
   console.log("[bridge.js] calculate() started at", new Date().toLocaleTimeString());
@@ -323,7 +144,7 @@ async function calculate() {
   window.__SHUL_DATA__ = {
     ready:          true,
     calculatedAt:   Date.now(),
-    zmanimEnabled,
+    zmanimEnabled:  true,
     location:       scheduleSettings.location,
     timezone:       scheduleSettings.location.timezone,
     hebrewDate,
@@ -342,7 +163,6 @@ async function calculate() {
 }
 
 // ─── INIT ───
-injectAdminControls();
 calculate().catch(e => console.error("[bridge.js] Initial calculation failed:", e));
 setInterval(() => {
   calculate().catch(e => console.error("[bridge.js] Recalculation failed:", e));

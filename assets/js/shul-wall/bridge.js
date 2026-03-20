@@ -20,6 +20,7 @@ async function calculate() {
     jCal       = getJCal();
     zmanCalc   = getZmanCalc();
     console.log("[bridge.js] ✅ base objects ready | date:", currentZDT.toPlainDate().toString());
+    console.log("[bridge.js] 🔍 jCal AFTER CREATION | jewishDay:", jCal.getJewishDayOfMonth(), "| jewishMonth:", jCal.getJewishMonth());
   } catch (e) {
     console.error("[bridge.js] ❌ FATAL: base object creation failed:", e);
     return;
@@ -75,6 +76,7 @@ async function calculate() {
     havdalahTime    = tzetIkar.toLocaleString(...dtF);
     rabbeinuTamTime = tzetRT.toLocaleString(...dtF);
     console.log("[bridge.js] ✅ parasha:", parashaName, "| candles:", candleLightingTime, "| havdalah:", havdalahTime);
+    console.log("[bridge.js] 🔍 jCal AFTER PARASHA | jewishDay:", jCal.getJewishDayOfMonth(), "| jewishMonth:", jCal.getJewishMonth());
   } catch (e) {
     console.error("[bridge.js] ❌ parasha/candles/havdalah failed:", e);
   }
@@ -92,6 +94,7 @@ async function calculate() {
           .join(" / ");
       }
       console.log("[bridge.js] ✅ makam:", computedMakam);
+      console.log("[bridge.js] 🔍 jCal AFTER MAKAM | jewishDay:", jCal.getJewishDayOfMonth(), "| jewishMonth:", jCal.getJewishMonth());
     }
   } catch (e) {
     console.error("[bridge.js] ❌ makam failed:", e);
@@ -142,6 +145,7 @@ async function calculate() {
     }
     computedZmanim.sort((a, b) => a.epochMs - b.epochMs);
     console.log("[bridge.js] ✅ zmanim:", computedZmanim.length, "upcoming | first:", computedZmanim[0]?.label, computedZmanim[0]?.time);
+    console.log("[bridge.js] 🔍 jCal AFTER ZMANIM | jewishDay:", jCal.getJewishDayOfMonth(), "| jewishMonth:", jCal.getJewishMonth());
   } catch (e) {
     console.error("[bridge.js] ❌ zmanim loop failed:", e);
   }
@@ -150,6 +154,11 @@ async function calculate() {
   let computedLimudim = [];
   try {
     const allLearning = jCal.getAllLearning();
+    console.log("[bridge.js] 🔍 limudim debug | jewishDay:", jCal.getJewishDayOfMonth(),
+      "| jewishMonth:", jCal.getJewishMonth(),
+      "| TehilimHodshi:", allLearning.TehilimHodshi,
+      "| TehilimShvui:", allLearning.TehilimShvui,
+      "| dafBavli:", allLearning.dafBavli);
     computedLimudim = [
       { study: "Babylonian Talmud",  ref: allLearning.dafBavli      || "" },
       { study: "Yerushalmi (Vilna)", ref: allLearning.DafYerushalmi || "" },

@@ -4,6 +4,8 @@ import { Card, Field, Toggle, Stepper, Segmented, Tabs, useDraft } from "../ui.j
 import { THEMES, THEME_OPTIONS } from "../../shared/themes.js";
 import { patchTv } from "../../shared/store.js";
 import { HEBREW_FONTS, useHebrewFont } from "../../shared/fonts.js";
+import jsQR from "jsqr";
+import { QrCode, Trash2 } from "lucide-react";
 
 function Swatch({ id }) {
   if (id === "auto") {
@@ -167,6 +169,52 @@ function HebrewFonts({ value, onChange }) {
   );
 }
 
+// Read the QR code out of a photo of the printed Zelle sheet. The TV then draws
+// a sharp copy of the same code instead of showing the photo.
+async function readQr(file) {
+  const bmp = await createImageBitmap(file);
+  for (const max of [1600, 1000, 2400]) {
+    const k = Math.min(1, max / Math.max(bmp.width, bmp.height));
+    const c = document.createElement("canvas");
+    c.width = Math.round(bmp.width * k);
+    c.height = Math.round(bmp.height * k);
+    const ctx = c.getContext("2d");
+    ctx.drawImage(bmp, 0, 0, c.width, c.height);
+    const img = ctx.getImageData(0, 0, c.width, c.height);
+    const code = jsQR(img.data, c.width, c.height, { inversionAttempts: "attemptBoth" });
+    if (code?.data) return code.data;
+  }
+  return null;
+}
+
+function ZelleQr({ value, onChange }) {
+  const input = React.useRef(null);
+  const [msg, setMsg] = useState("");
+  async function pick(file) {
+    if (!file) return;
+    setMsg("Reading…");
+    try {
+      const data = await readQr(file);
+      if (!data) return setMsg("Couldn't find a QR code in that photo. Try a closer, straight-on photo.");
+      onChange(data);
+      setMsg("Zelle QR code saved. It now shows on the donation slide.");
+    } catch (e) {
+      setMsg("Couldn't read that image.");
+    }
+  }
+  return (
+    <Field label="Zelle QR code" hint="Upload a photo or screenshot of your bank's Zelle QR code.">
+      <div className="row-actions">
+        <button type="button" className="btn btn-secondary" onClick={() => input.current.click()}><QrCode size={17} /><span>{value ? "Replace QR code" : "Upload QR code"}</span></button>
+        {value && <button type="button" className="btn btn-ghost-danger" onClick={() => { onChange(""); setMsg(""); }}><Trash2 size={16} /><span>Remove</span></button>}
+        <input ref={input} type="file" accept="image/*" hidden onChange={(e) => { pick(e.target.files[0]); e.target.value = ""; }} />
+      </div>
+      {value && !msg && <span className="hint">A Zelle QR code is saved.</span>}
+      {msg && <span className="hint">{msg}</span>}
+    </Field>
+  );
+}
+
 function ClockText({ s, set }) {
   const [text, setText] = useDraft({ shulName: s.shulName, shulNameHe: s.shulNameHe, donate: s.donate }, (v) => patchTv("settings", v));
   return (
@@ -187,6 +235,7 @@ function ClockText({ s, set }) {
           <Field label="Venmo"><input className="input" value={text.donate.venmo} onChange={(e) => setText({ ...text, donate: { ...text.donate, venmo: e.target.value } })} /></Field>
           <Field label="Zelle"><input className="input" value={text.donate.zelle} onChange={(e) => setText({ ...text, donate: { ...text.donate, zelle: e.target.value } })} /></Field>
           <Field label="Website"><input className="input" value={text.donate.website} onChange={(e) => setText({ ...text, donate: { ...text.donate, website: e.target.value } })} /></Field>
+          <ZelleQr value={text.donate.zelleQr || ""} onChange={(v) => setText({ ...text, donate: { ...text.donate, zelleQr: v } })} />
         </div>
       </Card>
     </>

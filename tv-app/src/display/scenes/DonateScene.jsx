@@ -48,7 +48,7 @@ export default function DonateScene({ tv, sched }) {
   const shabbat = sched?.inPeriod;
   const methods = [
     d.venmo && { key: "venmo", label: "Venmo", value: d.venmo.startsWith("@") ? d.venmo : "@" + d.venmo, qr: `https://venmo.com/u/${venmoUser(d.venmo)}` },
-    d.zelle && { key: "zelle", label: "Zelle", value: d.zelle, qr: null, hint: "Send from your bank app" },
+    d.zelle && { key: "zelle", label: "Zelle", value: d.zelle, qr: d.zelleQr || null, hint: d.zelleQr ? "Scan in your banking app" : "Send from your bank app" },
     d.website && { key: "web", label: "Online", value: site(d.website), qr: `https://${site(d.website)}` },
   ].filter(Boolean);
 
@@ -66,7 +66,7 @@ export default function DonateScene({ tv, sched }) {
               <Logo kind={m.key} />
               {!shabbat && (m.qr ? <QR value={m.qr} /> : <div className="qr qr-blank"><svg viewBox="0 0 24 24"><path d={ZELLE_PATH} /></svg></div>)}
               <span className="donate-value">{breakAtAt(m.value)}</span>
-              {!shabbat && <span className="donate-hint">{m.qr ? "Scan with your phone camera" : m.hint}</span>}
+              {!shabbat && <span className="donate-hint">{m.hint || "Scan with your phone camera"}</span>}
             </div>
           ))}
         </div>

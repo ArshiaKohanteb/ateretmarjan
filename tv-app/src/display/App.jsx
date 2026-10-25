@@ -5,7 +5,6 @@ import { buildSchedule, minutesUntil, localInfo, TIMEZONE } from "../shared/sche
 import { THEMES, resolveTheme } from "../shared/themes.js";
 import ScheduleScene from "./scenes/ScheduleScene.jsx";
 import { FlyerScene, AnnouncementScene } from "./scenes/ContentScenes.jsx";
-import { Crown } from "./scenes/common.jsx";
 
 const params = new URLSearchParams(location.search);
 const HOLD = params.get("hold"); // schedule | flyer | announcement (dashboard preview)
@@ -100,7 +99,6 @@ export default function App() {
         className="stage"
         style={{ transform: `translate(-50%, -50%) scale(${scale})${flip ? " rotate(180deg)" : ""}` }}
       >
-        <div className="ambient" />
         {prev && (
           <div className="layer layer-out" key={"out" + prev.n}>{render(prev.slide)}</div>
         )}
@@ -114,7 +112,7 @@ function Splash() {
   return (
     <div className="viewport theme-royal is-dark" style={THEMES.royal.vars}>
       <div className="splash">
-        <Crown size={160} />
+        <div className="crown" />
       </div>
     </div>
   );

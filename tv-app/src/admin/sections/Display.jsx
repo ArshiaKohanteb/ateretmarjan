@@ -15,10 +15,14 @@ function Swatch({ id }) {
   }
   const v = THEMES[id].vars;
   return (
-    <div className="swatch" style={{ background: `radial-gradient(120% 90% at 90% 0%, ${v["--glow"]}, transparent 60%), linear-gradient(155deg, ${v["--bg"]}, ${v["--bg-2"]})`, color: v["--text"] }}>
-      <span className="sw-clock">7:42</span>
-      <span className="sw-row" style={{ background: v["--accent"], color: v["--accent-ink"] }}>Mincha <b>5:45</b></span>
-      <span className="sw-row" style={{ background: v["--surface-strong"] }}>Arvit <b>6:20</b></span>
+    <div className="swatch swatch-tv">
+      <div style={{ background: v["--field"], color: v["--field-ink"] }}>
+        <span className="sw-clock">7:42</span>
+      </div>
+      <div style={{ background: v["--ground"], color: v["--ink"] }}>
+        <span className="sw-row" style={{ background: v["--accent"], color: v["--accent-ink"] }}>Mincha <b>5:45</b></span>
+        <span className="sw-row">Arvit <b>6:20</b></span>
+      </div>
     </div>
   );
 }

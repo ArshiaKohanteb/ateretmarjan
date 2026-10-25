@@ -1,52 +1,68 @@
-import React from "react";
-import { Crown, Clock, Time, NextUp } from "./common.jsx";
-import { addDays, isLive, DAY_NAMES } from "./util.js";
+import React, { useEffect, useState } from "react";
+import { Brand, Clock, Time, countdownText } from "./common.jsx";
+import { addDays, isLive } from "./util.js";
 
-function ScheduleList({ title, subtitle, items, now, next, tz }) {
+// Pick a type scale for the timetable from how many rows it must hold.
+function density(groups) {
+  const rows = groups.reduce((n, g) => n + g.items.length, 0) + groups.length * 1.2;
+  if (rows <= 7) return "d-xl";
+  if (rows <= 10) return "d-l";
+  if (rows <= 14) return "d-m";
+  return "d-s";
+}
+
+function Timetable({ groups, now, next, tz }) {
+  if (!groups.length) {
+    return (
+      <section className="timetable d-xl">
+        <h2 className="group-title">Today</h2>
+        <p className="empty">No minyanim posted</p>
+      </section>
+    );
+  }
+  const d = density(groups);
+  const twoCol = d === "d-s" && groups.length > 1;
   return (
-    <section className="panel list-panel">
-      <header className="panel-head">
-        <h2>{title}</h2>
-        {subtitle && <span className="panel-sub">{subtitle}</span>}
-      </header>
-      {items.length === 0 ? (
-        <p className="empty">No times posted</p>
-      ) : (
-        <ul className={`rows ${items.length > 7 ? "rows-dense" : ""}`}>
-          {items.map((m) => {
-            const state = next && m.id === next.id && m.epoch === next.epoch ? "is-next" : m.epoch < now ? "is-past" : "";
-            return (
-              <li key={m.id + m.epoch} className={state}>
-                <span className="row-name">
-                  {m.name}
-                  {m.note && <em>{m.note}</em>}
-                </span>
-                <Time epoch={m.epoch} tz={tz} />
-              </li>
-            );
-          })}
-        </ul>
-      )}
+    <section className={`timetable ${d} ${twoCol ? "two-col" : ""}`}>
+      {groups.map((g) => (
+        <div key={g.key} className="group">
+          <header className="group-head">
+            <h2 className="group-title">{g.title}</h2>
+            {g.subtitle && g.subtitle !== g.title && <span className="group-sub" dir="auto">{g.subtitle}</span>}
+          </header>
+          <ul className="rows">
+            {g.items.map((m) => {
+              const state = next && m.id === next.id && m.epoch === next.epoch ? "is-next" : m.epoch < now ? "is-past" : "";
+              return (
+                <li key={m.id + m.epoch} className={state}>
+                  <span className="row-name" dir="auto">
+                    {m.name}
+                    {m.note && <em>{m.note}</em>}
+                  </span>
+                  <Time epoch={m.epoch} tz={tz} />
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ))}
     </section>
   );
 }
 
-function ZmanimPanel({ z, hidden, now, tz, today }) {
-  if (!z?.days) return null;
+function ZmanimBand({ z, hidden, now, tz, today }) {
+  if (!z?.days) return <div className="zband" />;
   const todays = z.days[today] || {};
   const afterNightfall = todays.tzet && now > todays.tzet;
-  const dayKey = afterNightfall ? addDays(today, 1) : today;
-  const vals = z.days[dayKey] || {};
-  const list = (z.zmanimList || []).filter((x) => !hidden.includes(x.id) && vals[x.id]);
+  const vals = z.days[afterNightfall ? addDays(today, 1) : today] || {};
+  const list = (z.zmanimList || []).filter((x) => !hidden.includes(x.id) && vals[x.id]).slice(0, 8);
   return (
-    <section className="panel zmanim-panel">
-      <header className="panel-head">
-        <h2>{afterNightfall ? "Tomorrow's Zmanim" : "Today's Zmanim"}</h2>
-      </header>
-      <div className="zgrid" style={{ "--cols": Math.min(5, Math.ceil(list.length / 2)) }}>
+    <section className="zband">
+      <h2 className="zband-title">{afterNightfall ? "Tomorrow" : "Zmanim"}</h2>
+      <div className="zband-row" style={{ "--n": list.length }}>
         {list.map((x) => (
-          <div key={x.id} className={`ztile ${!afterNightfall && vals[x.id] < now ? "is-past" : ""}`}>
-            <span className="zlabel">{x.label}</span>
+          <div key={x.id} className={`zman ${!afterNightfall && vals[x.id] < now ? "is-past" : ""}`}>
+            <span className="zman-label">{x.label}</span>
             <Time epoch={vals[x.id]} tz={tz} />
           </div>
         ))}
@@ -55,106 +71,86 @@ function ZmanimPanel({ z, hidden, now, tz, today }) {
   );
 }
 
-function InfoChips({ z, s }) {
-  if (!z) return null;
-  const chips = [];
-  if (s.showLimudim) z.limudim?.slice(0, 2).forEach((l) => chips.push({ k: l.study, v: l.ref, he: true }));
-  if (s.showMakam && z.makam) chips.push({ k: "Makam", v: z.makam });
-  if (s.showHiloulot && z.hiloulot?.length) chips.push({ k: "Hilula", v: z.hiloulot.slice(0, 2).join(" · ") });
-  if (!chips.length) return null;
+// One message at a time along the bottom, so it can be read from the back of the room.
+function Bulletin({ tv, z, today }) {
+  const s = tv.settings;
+  const d = s.donate || {};
+  const items = [];
+  if (s.showTicker) {
+    (tv.announcements || [])
+      .filter((a) => a.ticker !== false && isLive(a, today) && (a.style || "info") === "info")
+      .forEach((a) => items.push(a.body || a.title));
+  }
+  const learning = [];
+  if (s.showLimudim) z?.limudim?.slice(0, 1).forEach((l) => learning.push(`Daf Yomi  ${l.ref}`));
+  if (s.showMakam && z?.makam) learning.push(`Makam ${z.makam}`);
+  if (s.showHiloulot && z?.hiloulot?.length) learning.push(`Hilula of ${z.hiloulot[0]}`);
+  if (learning.length) items.push(learning.join("   ·   "));
+  if (s.showDonate) {
+    const ways = [d.venmo && `Venmo ${d.venmo}`, d.zelle && `Zelle ${d.zelle}`].filter(Boolean).join("   ·   ");
+    if (ways) items.push(`Support Ateret Marjan   ·   ${ways}`);
+  }
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    if (items.length < 2) return;
+    const t = setInterval(() => setI((n) => n + 1), Math.max(6, (s.tickerSpeed || 60) / 6) * 1000);
+    return () => clearInterval(t);
+  }, [items.length, s.tickerSpeed]);
+  if (!items.length) return null;
+  const text = items[i % items.length];
   return (
-    <div className="info-chips">
-      {chips.map((c) => (
-        <span key={c.k} className="info-chip">
-          <b>{c.k}</b>
-          <span dir="auto">{c.v}</span>
-        </span>
-      ))}
-    </div>
+    <footer className="bulletin">
+      <span key={i} className="bulletin-text" dir="auto">{text}</span>
+    </footer>
   );
 }
 
 export default function ScheduleScene({ tv, z, sched, now, tz }) {
   const s = tv.settings;
-  const showShabbat = sched.shabbatItems.length > 0;
-  const showToday = sched.todayItems.length > 0 || !showShabbat;
-  const todayTitle = sched.special ? sched.special.title || "Special Schedule" : "Today's Minyanim";
+  const special = z?.specialDays?.length ? z.specialDays.join(" · ") : "";
+  const hasBulletin = s.showTicker || s.showDonate || s.showLimudim || s.showMakam;
 
   return (
-    <div className="scene scene-schedule">
-      <aside className="hero">
-        <header className="brand">
-          <Crown size={84} />
-          <div>
-            <div className="brand-name">{s.shulName}</div>
-            <div className="brand-he" dir="rtl">{s.shulNameHe}</div>
-          </div>
-        </header>
+    <div className={`scene scene-schedule ${hasBulletin ? "has-bulletin" : ""}`}>
+      <aside className="now">
+        <Brand tv={tv} />
 
-        <div className="hero-mid">
-          <div className="eyebrow">{z?.hebrewDate?.civil || DAY_NAMES[sched.weekday]}</div>
+        <div className="now-main">
           <Clock showSeconds={s.showSeconds} tz={tz} className="clock-hero" />
-          {z?.hebrewDate?.hebrew && <div className="hebdate" dir="rtl">{z.hebrewDate.hebrew}</div>}
-          <div className="chips">
-            {z?.parasha && <span className="chip chip-accent" dir="rtl">פרשת {z.parasha}</span>}
-            {z?.specialDays?.map((d) => <span key={d} className="chip">{d}</span>)}
-          </div>
+          <div className="now-date">{z?.hebrewDate?.civil || ""}</div>
+          {z?.hebrewDate?.hebrew && <div className="now-hebdate" dir="rtl">{z.hebrewDate.hebrew}</div>}
+          {(z?.parasha || special) && (
+            <div className="now-week">
+              {z?.parasha && <span dir="rtl">פרשת {z.parasha}</span>}
+              {special && <span>{special}</span>}
+            </div>
+          )}
         </div>
 
-        <NextUp next={sched.next} now={now} tz={tz} />
-
-        {z?.candleLighting && (
-          <div className="shabbat-strip">
-            <div><span>Candle Lighting</span><Time epoch={z.candleLighting} tz={tz} /></div>
-            <div><span>Havdalah</span><Time epoch={z.havdalah} tz={tz} /></div>
-            <div><span>Rabbeinu Tam</span><Time epoch={z.rabbeinuTam} tz={tz} /></div>
+        {sched.next ? (
+          <div className="now-next">
+            <div className="now-next-line">
+              <span className="now-next-name" dir="auto">{sched.next.name}</span>
+              <span className="now-next-when">{countdownText(sched.next.epoch, now)}</span>
+            </div>
+            <Time epoch={sched.next.epoch} tz={tz} />
           </div>
+        ) : (
+          z?.candleLighting && (
+            <div className="now-next">
+              <div className="now-next-line"><span className="now-next-name">Candle lighting</span></div>
+              <Time epoch={z.candleLighting} tz={tz} />
+            </div>
+          )
         )}
       </aside>
 
       <main className="board">
-        <div className={`lists ${showToday && showShabbat ? "lists-2" : ""}`}>
-          {showToday && <ScheduleList title={todayTitle} items={sched.todayItems} now={now} next={sched.next} tz={tz} />}
-          {showShabbat && (
-            <ScheduleList title="Shabbat Schedule" subtitle={z?.parasha ? `פרשת ${z.parasha}` : ""} items={sched.shabbatItems} now={now} next={sched.next} tz={tz} />
-          )}
-        </div>
-        {s.showZmanim && <ZmanimPanel z={z} hidden={s.hiddenZmanim || []} now={now} tz={tz} today={sched.today} />}
-        <InfoChips z={z} s={s} />
+        <Timetable groups={sched.groups} now={now} next={sched.next} tz={tz} />
       </main>
 
-      <Footer tv={tv} today={sched.today} />
+      {s.showZmanim && <ZmanimBand z={z} hidden={s.hiddenZmanim || []} now={now} tz={tz} today={sched.today} />}
+      <Bulletin tv={tv} z={z} today={sched.today} />
     </div>
-  );
-}
-
-function Footer({ tv, today }) {
-  const s = tv.settings;
-  const items = (tv.announcements || []).filter((a) => a.ticker !== false && isLive(a, today)).map((a) => a.body || a.title);
-  const d = s.donate || {};
-  const donate = [d.venmo && `Venmo ${d.venmo}`, d.zelle && `Zelle ${d.zelle}`, d.website].filter(Boolean);
-  if (!(s.showTicker && items.length) && !(s.showDonate && donate.length)) return null;
-  return (
-    <footer className="footer">
-      {s.showTicker && items.length > 0 ? (
-        <div className="ticker">
-          <div className="ticker-track" style={{ animationDuration: `${Math.max(20, (s.tickerSpeed || 60) * Math.max(1, items.length / 2))}s` }}>
-            {[0, 1].map((k) => (
-              <span key={k} className="ticker-set" aria-hidden={k === 1}>
-                {items.map((t, i) => (
-                  <span key={i} className="ticker-item"><Crown size={22} className="ticker-crown" />{t}</span>
-                ))}
-              </span>
-            ))}
-          </div>
-        </div>
-      ) : <div className="ticker" />}
-      {s.showDonate && donate.length > 0 && (
-        <div className="donate">
-          <b>Support Ateret Marjan</b>
-          <span>{donate.join("  ·  ")}</span>
-        </div>
-      )}
-    </footer>
   );
 }

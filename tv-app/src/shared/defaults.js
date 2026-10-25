@@ -68,10 +68,31 @@ export const DEFAULT_SHABBAT = [
 
 export const ANNOUNCEMENT_STYLES = {
   info: { label: "Announcement", hint: "General news" },
-  celebration: { label: "Mazal Tov", hint: "Simchas & celebrations" },
+  celebration: { label: "Mazal Tov", hint: "Weddings, brits, births" },
+  sponsor: { label: "Meal sponsor", hint: "Kiddush & seudah sponsors" },
   urgent: { label: "Important", hint: "Changes & urgent notices" },
   memorial: { label: "In Memory", hint: "Hilulot & memorials" },
-  sponsor: { label: "Sponsored", hint: "Kiddush & dedications" },
+};
+
+export const OCCASIONS = {
+  wedding: { label: "Wedding", line: "on the wedding of", motif: "rings" },
+  engagement: { label: "Engagement", line: "on the engagement of", motif: "rings" },
+  brit: { label: "Brit Milah", line: "on the brit milah of their son", motif: "star" },
+  birthGirl: { label: "Baby girl", line: "on the birth of a baby girl to", motif: "star" },
+  birthBoy: { label: "Baby boy", line: "on the birth of a baby boy to", motif: "star" },
+  bar: { label: "Bar Mitzvah", line: "on the bar mitzvah of", motif: "star" },
+  bat: { label: "Bat Mitzvah", line: "on the bat mitzvah of", motif: "star" },
+  other: { label: "Other", line: "", motif: "star" },
+};
+
+export const MEALS = ["Kiddush", "Seudat Shelishit", "Breakfast", "Shabbat Dinner", "Melave Malka"];
+
+export const DEDICATIONS = {
+  honor: "in honor of",
+  memory: "in loving memory of",
+  refuah: "for a refuah shelemah for",
+  celebration: "in celebration of",
+  none: "",
 };
 
 export const DEFAULT_ANNOUNCEMENTS = [

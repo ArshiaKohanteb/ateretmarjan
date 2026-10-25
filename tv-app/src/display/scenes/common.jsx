@@ -2,8 +2,17 @@ import React from "react";
 import { useNow } from "../hooks.js";
 import { formatEpoch, minutesUntil } from "../../shared/schedule.js";
 
-export function Crown({ size = 64, className = "", style }) {
-  return <div className={`crown ${className}`} style={{ width: size, height: size * 0.956, ...style }} aria-hidden="true" />;
+// The logo lockup: the crown mark with the name beside it. Used once per screen.
+export function Brand({ tv, small = false }) {
+  return (
+    <div className={`brand ${small ? "brand-sm" : ""}`}>
+      <div className="crown" aria-hidden="true" />
+      <div className="brand-text">
+        <span className="brand-name">{tv.settings.shulName}</span>
+        <span className="brand-he" dir="rtl">{tv.settings.shulNameHe}</span>
+      </div>
+    </div>
+  );
 }
 
 export function Clock({ showSeconds, tz, className = "" }) {
@@ -29,26 +38,9 @@ export function Time({ epoch, tz }) {
 
 export function countdownText(epoch, now) {
   const m = minutesUntil(epoch, now);
-  if (m <= 0) return "Now";
+  if (m <= 0) return "now";
   if (m < 60) return `in ${m} min`;
   const h = Math.floor(m / 60);
   const r = m % 60;
-  return r ? `in ${h}h ${r}m` : `in ${h} hr`;
-}
-
-export function NextUp({ next, now, tz, compact = false }) {
-  if (!next) return null;
-  const soon = minutesUntil(next.epoch, now) <= 15;
-  return (
-    <div className={`next ${soon ? "next-soon" : ""} ${compact ? "next-compact" : ""}`}>
-      <div className="next-label">
-        <span className="pulse" />
-        Next · {countdownText(next.epoch, now)}
-      </div>
-      <div className="next-row">
-        <span className="next-name">{next.name}</span>
-        <Time epoch={next.epoch} tz={tz} />
-      </div>
-    </div>
-  );
+  return r ? `in ${h} hr ${r} min` : `in ${h} hr`;
 }

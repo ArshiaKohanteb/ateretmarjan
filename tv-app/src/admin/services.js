@@ -6,6 +6,7 @@ import {
 } from "firebase/auth";
 import { get, set, remove, onValue } from "firebase/database";
 import { getStorage, ref as sRef, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
+import { getAI, getGenerativeModel, GoogleAIBackend, Schema } from "firebase/ai";
 import { app, firebaseConfig, adminsRef } from "../shared/firebase.js";
 import { isDemo } from "../shared/store.js";
 
@@ -62,7 +63,7 @@ export const removeManager = (uid) => remove(adminsRef(uid));
 // ── Photos ──
 
 // Shrink big phone photos before upload: faster for the TV and the stick's memory.
-async function shrink(file, maxEdge, quality) {
+export async function shrink(file, maxEdge, quality) {
   const bitmap = await createImageBitmap(file).catch(() => null);
   if (!bitmap) {
     const url = URL.createObjectURL(file);
@@ -103,4 +104,60 @@ export async function deleteFlyerFile(path) {
 
 export async function hasAnyAdmin() {
   try { return (await get(adminsRef())).exists(); } catch { return true; }
+}
+
+// ── Reading the rabbi's weekly flyer (Gemini through Firebase AI Logic) ──
+
+const flyerSchema = Schema.object({
+  properties: {
+    days: Schema.array({
+      items: Schema.object({
+        properties: {
+          date: Schema.string({ description: "YYYY-MM-DD" }),
+          label: Schema.string({ description: "Name of the day, e.g. Shabbat, Hoshana Rabba, Erev Shabbat" }),
+          items: Schema.array({
+            items: Schema.object({
+              properties: {
+                name: Schema.string(),
+                time: Schema.string({ description: "24-hour HH:MM" }),
+                note: Schema.string(),
+              },
+              optionalProperties: ["note"],
+            }),
+          }),
+        },
+      }),
+    }),
+  },
+});
+
+const blobToBase64 = (blob) => new Promise((res, rej) => {
+  const r = new FileReader();
+  r.onload = () => res(String(r.result).split(",")[1]);
+  r.onerror = rej;
+  r.readAsDataURL(blob);
+});
+
+export async function readFlyer(file, { today, friday, saturday }) {
+  const img = await shrink(file, 1800, 0.88);
+  const data = await blobToBase64(img.blob);
+  const model = getGenerativeModel(getAI(app, { backend: new GoogleAIBackend() }), {
+    model: "gemini-2.5-flash",
+    generationConfig: { responseMimeType: "application/json", responseSchema: flyerSchema, temperature: 0 },
+  });
+  const prompt = `This is a printed schedule of prayer times from a synagogue. Our minyan is "Ateret Marjan" (the youth side).
+Today is ${today}. The coming Friday is ${friday} and Shabbat is ${saturday}.
+
+Extract every scheduled event with its time, grouped by day.
+- If the flyer separates "Haichal Moshe" (the older congregation) from "Ateret Marjan" / "Youth", return ONLY the Ateret Marjan / Youth times. If there is no such split, return everything.
+- When one line lists several times (e.g. "Shacharit 6:15 AM / 9:00 AM / 9:45 AM (Youth)"), return one item per time; put labels like "Youth" in the note.
+- For a range like "1:00 PM - 2:00 PM", use the start time and put "until 2:00 PM" in the note.
+- "Candle lighting any time after 7:12 PM" becomes name "Candle Lighting", time "19:12", note "after".
+- "End of Chag" / "Shabbat ends" becomes name "Havdalah".
+- Use clean, title-case names (Shacharit, Mincha, Arvit, Shiur – Professor Kimia, Candle Lighting, Hakafot).
+- Give each day its real date (YYYY-MM-DD). If the flyer only says a weekday, use the next such date on or after today. If no day is given at all, assume Shabbat ${saturday} for Shabbat-day prayers and Friday ${friday} for candle lighting / Kabbalat Shabbat.
+- Times are 24-hour HH:MM. Skip anything without a time.`;
+  const result = await model.generateContent([prompt, { inlineData: { data, mimeType: "image/jpeg" } }]);
+  const parsed = JSON.parse(result.response.text());
+  return (parsed.days || []).filter((d) => d.items?.length);
 }

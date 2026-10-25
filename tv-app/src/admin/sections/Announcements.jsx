@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { Plus, Pencil, Trash2, Megaphone } from "lucide-react";
+import { Plus, Pencil, Trash2, Megaphone, PartyPopper, UtensilsCrossed } from "lucide-react";
 import { Card, Button, Field, Toggle, Modal, todayKey } from "../ui.jsx";
-import { uid, ANNOUNCEMENT_STYLES } from "../../shared/defaults.js";
+import { uid, ANNOUNCEMENT_STYLES, OCCASIONS, MEALS, DEDICATIONS } from "../../shared/defaults.js";
 import { writeTv } from "../../shared/store.js";
 
 export function status(item, today = todayKey()) {
@@ -32,18 +32,62 @@ function Editor({ initial, onSave, onClose }) {
           ))}
         </div>
       </Field>
-      <Field label="Headline" hint="Short and big. Shows huge on the full-screen slide.">
-        <input className="input" maxLength={90} value={a.title} placeholder="e.g. Mazal Tov to the Cohen family!" onChange={(e) => set({ title: e.target.value })} />
-      </Field>
-      <Field label="Message" hint={`${(a.body || "").length}/320`}>
-        <textarea className="input" rows={4} maxLength={320} value={a.body} placeholder="Details people should read from across the room." onChange={(e) => set({ body: e.target.value })} />
-      </Field>
+      {a.style === "celebration" ? (
+        <>
+          <Field label="Occasion">
+            <div className="chip-pick chip-pick-solid">
+              {Object.entries(OCCASIONS).map(([k, o]) => (
+                <button type="button" key={k} className={(a.occasion || "wedding") === k ? "on" : ""} onClick={() => set({ occasion: k, line: undefined })}>{o.label}</button>
+              ))}
+            </div>
+          </Field>
+          <Field label="Line above the names" hint="Shown small, above the names">
+            <input className="input" value={a.line ?? (OCCASIONS[a.occasion || "wedding"]?.line || "")} onChange={(e) => set({ line: e.target.value })} />
+          </Field>
+          <Field label="Names" hint="Shown huge. e.g. Daniel & Rachel, or The Cohen family">
+            <input className="input" maxLength={70} value={a.title} onChange={(e) => set({ title: e.target.value })} />
+          </Field>
+          <Field label="Message (optional)">
+            <input className="input" maxLength={140} value={a.body} placeholder="Wishing the families much nachat" onChange={(e) => set({ body: e.target.value })} />
+          </Field>
+        </>
+      ) : a.style === "sponsor" ? (
+        <>
+          <Field label="Meal">
+            <div className="chip-pick chip-pick-solid">
+              {MEALS.map((m) => (
+                <button type="button" key={m} className={(a.meal || "Kiddush") === m ? "on" : ""} onClick={() => set({ meal: m })}>{m}</button>
+              ))}
+            </div>
+          </Field>
+          <Field label="Sponsored by"><input className="input" maxLength={60} value={a.title} placeholder="The Shirazi family" onChange={(e) => set({ title: e.target.value })} /></Field>
+          <Field label="Dedication">
+            <select className="input" value={a.dedication || "none"} onChange={(e) => set({ dedication: e.target.value })}>
+              {Object.entries(DEDICATIONS).map(([k, v]) => <option key={k} value={k}>{v || "No dedication"}</option>)}
+            </select>
+          </Field>
+          {(a.dedication || "none") !== "none" && (
+            <Field label="Who it's for"><input className="input" maxLength={70} value={a.body} placeholder='Yosef ben Rachel z"l' onChange={(e) => set({ body: e.target.value })} /></Field>
+          )}
+        </>
+      ) : (
+        <>
+          <Field label="Headline" hint="Short and big. Shows huge on the full-screen slide.">
+            <input className="input" maxLength={90} value={a.title} placeholder="e.g. Rosh Chodesh Minyan at 6:15" onChange={(e) => set({ title: e.target.value })} />
+          </Field>
+          <Field label="Message" hint={`${(a.body || "").length}/320`}>
+            <textarea className="input" rows={4} maxLength={320} value={a.body} placeholder="Details people should read from across the room." onChange={(e) => set({ body: e.target.value })} />
+          </Field>
+        </>
+      )}
       <div className="grid-2">
         <Field label="Start showing (optional)"><input type="date" className="input" value={a.start} onChange={(e) => set({ start: e.target.value })} /></Field>
         <Field label="Stop after (optional)"><input type="date" className="input" value={a.end} onChange={(e) => set({ end: e.target.value })} /></Field>
       </div>
       <Toggle label="Full-screen slide" hint="Appears in the rotation between schedule screens" checked={a.slide !== false} onChange={(slide) => set({ slide })} />
-      <Toggle label="Scrolling ticker" hint="Scrolls along the bottom of the schedule screen" checked={a.ticker !== false} onChange={(ticker) => set({ ticker })} />
+      {(a.style || "info") === "info" && (
+        <Toggle label="Bottom bar" hint="Also shows in the rotating bar under the schedule" checked={a.ticker !== false} onChange={(ticker) => set({ ticker })} />
+      )}
     </Modal>
   );
 }
@@ -56,14 +100,24 @@ export default function Announcements({ tv }) {
     save(list.some((x) => x.id === a.id) ? list.map((x) => (x.id === a.id ? a : x)) : [a, ...list]);
     setEditing(null);
   };
-  const blank = () => ({ id: uid(), active: true, style: "info", title: "", body: "", slide: true, ticker: true, start: "", end: "" });
+  const blank = (style = "info") => ({
+    id: uid(), active: true, style, title: "", body: "", slide: true, ticker: style === "info", start: "", end: "",
+    ...(style === "celebration" ? { occasion: "wedding" } : {}),
+    ...(style === "sponsor" ? { meal: "Kiddush", dedication: "honor" } : {}),
+  });
 
   return (
     <div className="stack">
       <Card
         title="Announcements"
         subtitle="Full-screen slides and the bottom ticker. Set dates so they take themselves down."
-        action={<Button variant="primary" icon={Plus} onClick={() => setEditing(blank())}>New</Button>}
+        action={
+          <div className="row-actions">
+            <Button variant="primary" icon={Plus} onClick={() => setEditing(blank())}>Announcement</Button>
+            <Button icon={PartyPopper} onClick={() => setEditing(blank("celebration"))}>Mazal Tov</Button>
+            <Button icon={UtensilsCrossed} onClick={() => setEditing(blank("sponsor"))}>Sponsor</Button>
+          </div>
+        }
       >
         {list.length === 0 && (
           <div className="empty-big">
@@ -82,10 +136,10 @@ export default function Announcements({ tv }) {
                     <span className={`tag tag-${a.style}`}>{ANNOUNCEMENT_STYLES[a.style]?.label || "Announcement"}</span>
                     <span className={`badge ${st.cls}`}>{st.label}</span>
                     {a.slide !== false && <span className="meta">Slide</span>}
-                    {a.ticker !== false && <span className="meta">Ticker</span>}
+                    {a.ticker !== false && (a.style || "info") === "info" && <span className="meta">Bottom bar</span>}
                   </div>
-                  {a.title && <h4>{a.title}</h4>}
-                  {a.body && <p>{a.body}</p>}
+                  {a.title && <h4>{a.style === "sponsor" ? `${a.meal || "Kiddush"} · ${a.title}` : a.title}</h4>}
+                  {(a.body || a.style === "celebration") && <p>{a.style === "celebration" ? (a.line ?? OCCASIONS[a.occasion]?.line ?? "") + (a.body ? " · " + a.body : "") : a.body}</p>}
                 </div>
                 <div className="ann-item-actions">
                   <button type="button" role="switch" aria-label="Show on TV" aria-checked={a.active !== false} className={`switch ${a.active !== false ? "on" : ""}`}

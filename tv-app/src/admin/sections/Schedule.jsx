@@ -4,6 +4,7 @@ import { Card, Button, Field, Toggle, Segmented, DaysPicker, TimeEditor, useDraf
 import { uid, WEEKDAYS } from "../../shared/defaults.js";
 import { writeTv, patchTv } from "../../shared/store.js";
 import { addDays, localInfo } from "../../shared/schedule.js";
+import FlyerImport from "./FlyerImport.jsx";
 
 const move = (list, i, d) => {
   const j = i + d;
@@ -148,6 +149,7 @@ export default function Schedule({ tv, z }) {
   const [tab, setTab] = useState("weekday");
   return (
     <div className="stack">
+      <FlyerImport tv={tv} />
       <Segmented value={tab} onChange={setTab} options={[{ value: "weekday", label: "Weekday" }, { value: "shabbat", label: "Shabbat" }, { value: "special", label: "Holidays" }]} />
       {tab === "weekday" && <Weekday tv={tv} z={z} />}
       {tab === "shabbat" && <Shabbat tv={tv} z={z} />}

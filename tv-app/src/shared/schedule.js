@@ -114,47 +114,72 @@ export function activeSpecial(tv, dateKey) {
   return (tv.special || []).find((s) => s.active !== false && s.start && inRange(dateKey, s.start, s.end || s.start));
 }
 
-// Everything the schedule screen needs for "now".
+const WEEKDAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Shabbat"];
+
+const timed = (items, dateKey, z, tz) => (items || [])
+  .map((m) => ({ ...m, epoch: resolveTime(m.time, dateKey, z, tz) }))
+  .filter((m) => m.epoch != null)
+  .sort((a, b) => a.epoch - b.epoch);
+
+// Everything the schedule screen needs for "now". The timetable is a list of
+// groups (Today, Shabbat, upcoming holiday days), each with its own title.
 export function buildSchedule(tv, z, now = Date.now(), tz = TIMEZONE) {
   const info = localInfo(now, tz);
   const today = info.dateKey;
   const wd = info.weekday;
+  const groups = [];
 
   const special = activeSpecial(tv, today);
-  const todaySource = special ? special.items || [] : (tv.minyanim || []).filter((m) => (m.days || []).includes(wd));
-  const todayItems = todaySource
-    .map((m) => ({ ...m, epoch: resolveTime(m.time, today, z, tz) }))
-    .filter((m) => m.epoch != null)
-    .sort((a, b) => a.epoch - b.epoch);
+  if (special) {
+    groups.push({ key: "special-" + today, title: special.title || "Today", subtitle: "Today", items: timed(special.items, today, z, tz) });
+  } else if (wd !== 6) {
+    const items = timed((tv.minyanim || []).filter((m) => (m.days || []).includes(wd)), today, z, tz);
+    if (items.length) groups.push({ key: "today", title: "Today", subtitle: WEEKDAY_NAMES[wd], items });
+  }
 
+  // From the "show from" day through Shabbat, show what's coming up.
   const satKey = addDays(today, (6 - wd + 7) % 7);
   const friKey = addDays(satKey, -1);
   const showFrom = Number(tv.settings?.shabbatShowFrom ?? 4);
-  const showShabbat = wd === 6 || wd === 5 || (showFrom <= 4 && wd >= showFrom) || showFrom === 0;
-  const shabbatItems = (tv.shabbat || [])
-    .map((s) => {
-      const key = s.day === "fri" ? friKey : satKey;
-      return { ...s, epoch: resolveTime(s.time, key, z, tz) };
-    })
-    .filter((s) => s.epoch != null)
-    .sort((a, b) => a.epoch - b.epoch);
+  const lookAhead = wd === 6 || wd === 5 || showFrom === 0 || wd >= showFrom;
+  if (lookAhead) {
+    // Holiday days between tomorrow and Shabbat (e.g. a parsed Yom Tov flyer)
+    for (let d = addDays(today, 1); d <= satKey; d = addDays(d, 1)) {
+      const sp = activeSpecial(tv, d);
+      if (sp) {
+        const dwd = localInfo(zonedEpoch(d, "12:00", tz), tz).weekday;
+        groups.push({ key: "special-" + d, title: sp.title || WEEKDAY_NAMES[dwd], subtitle: WEEKDAY_NAMES[dwd], items: timed(sp.items, d, z, tz) });
+      }
+    }
+    const shabbatCovered = activeSpecial(tv, satKey) || (wd === 5 && special && activeSpecial(tv, friKey));
+    if (!shabbatCovered) {
+      const items = (tv.shabbat || [])
+        .map((s) => ({ ...s, epoch: resolveTime(s.time, s.day === "fri" ? friKey : satKey, z, tz) }))
+        .filter((s) => s.epoch != null && !(wd === 6 && s.day === "fri"))
+        .sort((a, b) => a.epoch - b.epoch);
+      if (items.length) groups.push({ key: "shabbat", title: "Shabbat", subtitle: z?.parasha ? `פרשת ${z.parasha}` : "", items });
+    }
+  }
 
-  // On Shabbat the Shabbat schedule *is* today's schedule.
-  const dayItems = wd === 6 && !special ? [] : todayItems;
-  const upcomingPool = [...dayItems, ...(showShabbat ? shabbatItems : [])].sort((a, b) => a.epoch - b.epoch);
-  const next = upcomingPool.find((m) => m.epoch > now) || null;
+  const all = groups.flatMap((g) => g.items).sort((a, b) => a.epoch - b.epoch);
+
+  // Early in the week, preview this Shabbat's times so the board is never half empty.
+  if (!lookAhead && z?.candleLighting) {
+    groups.push({
+      key: "shabbat-preview", title: "Shabbat", subtitle: z.parasha ? `פרשת ${z.parasha}` : "", preview: true,
+      items: [
+        { id: "cl", name: "Candle Lighting", epoch: z.candleLighting },
+        { id: "hv", name: "Havdalah", epoch: z.havdalah },
+      ].filter((m) => m.epoch),
+    });
+  }
+  const next = all.find((m) => m.epoch > now) || null;
 
   const zToday = z?.days?.[today] || {};
   const isNight = zToday.sunset && zToday.sunrise ? now > zToday.sunset || now < zToday.sunrise : false;
-  const friCandle = z?.candleLighting;
-  const isShabbat = !!(friCandle && z?.havdalah && now >= friCandle && now <= z.havdalah);
+  const isShabbat = !!(z?.candleLighting && z?.havdalah && now >= z.candleLighting && now <= z.havdalah);
 
-  return {
-    today, weekday: wd, special,
-    todayItems: dayItems,
-    shabbatItems: showShabbat ? shabbatItems : [],
-    next, isNight, isShabbat,
-  };
+  return { today, weekday: wd, special, groups, upcoming: all.filter((m) => m.epoch > now), next, isNight, isShabbat };
 }
 
 export function minutesUntil(epoch, now = Date.now()) {

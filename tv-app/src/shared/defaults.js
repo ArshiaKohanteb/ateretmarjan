@@ -45,6 +45,8 @@ export const DEFAULT_SETTINGS = {
   donate: {
     venmo: "@Ateret-Marjan",
     zelle: "donateateretmarjan@gmail.com",
+    // From the Chase "Scan in your banking app to pay" sheet
+    zelleQr: "https://enroll.zellepay.com/qr-codes/?data=eyJuYW1lIjoiQVRFUkVUIE1BUkpBTiIsInRva2VuIjoiYXRlcmV0bWFyamFuemVsbGVAZ21haWwuY29tIiwiYWN0aW9uIjoicGF5bWVudCJ9",
     website: "AteretMarjan.org",
   },
   // Screen elements
@@ -153,7 +155,11 @@ export function normalizeTv(raw) {
     settings: {
       ...DEFAULT_SETTINGS,
       ...(r.settings || {}),
-      donate: { ...DEFAULT_SETTINGS.donate, ...(r.settings?.donate || {}) },
+      donate: {
+        ...DEFAULT_SETTINGS.donate,
+        ...(r.settings?.donate || {}),
+        zelleQr: r.settings?.donate?.zelleQr || DEFAULT_SETTINGS.donate.zelleQr,
+      },
       nightDim: { ...DEFAULT_SETTINGS.nightDim, ...(r.settings?.nightDim || {}) },
       location: { ...DEFAULT_SETTINGS.location, ...(r.settings?.location || {}) },
     },

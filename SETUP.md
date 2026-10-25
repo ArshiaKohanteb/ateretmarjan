@@ -10,15 +10,15 @@ The old display at `/shul-wall/ateret-marjan-tv` still works and wasn't changed.
 
 ## One-time Firebase setup (about 10 minutes)
 
-Open https://console.firebase.google.com and choose the **ateret-marjan-signage** project.
+Open https://console.firebase.google.com and choose the **ateret-marjan-elegant-tv** project (elegantproductionsla@gmail.com).
 
 1. **Switch to the Blaze plan.** Click the plan badge (bottom-left) and pick **Blaze**. Firebase only allows photo storage on this plan. A shul's flyers stay inside the free allowance, so it should cost $0. To be safe, set a **$1 budget alert** when it asks.
 2. **Turn on email sign-in.** Go to **Build → Authentication → Get started → Sign-in method → Email/Password → Enable → Save**.
    Then open **Settings → Authorized domains** and make sure `ateretmarjan.org` is in the list.
 3. **Turn on photo storage.** Go to **Build → Storage → Get started**, accept the default location, and choose **production mode**.
    On the **Rules** tab, replace everything with the contents of [`firebase/storage.rules`](firebase/storage.rules) and click **Publish**.
-4. **Lock down the database.** Go to **Build → Realtime Database → Rules**, replace everything with [`firebase/database.rules.json`](firebase/database.rules.json), and click **Publish**.
-   These rules keep the old display working as before. They also mean only approved managers can change the new TV.
+4. **Create and lock down the database.** Go to **Build → Realtime Database → Create database**, pick **United States (us-central1)**, and start in **locked mode**. Then open the **Rules** tab, replace everything with [`firebase/database.rules.json`](firebase/database.rules.json), and click **Publish**.
+   These rules mean only approved managers can change the TV.
 5. **Create your owner account.** Go to https://ateretmarjan.org/tv/admin/ and choose **First-time setup**. Enter your email and a password.
    Only the very first account can do this. After that, new people are added under **People**.
 6. **Add the show manager.** In the dashboard, go to **People → Add a person**. Enter their email and a starting password, and pick **Manager**.

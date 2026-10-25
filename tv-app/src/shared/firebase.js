@@ -1,16 +1,16 @@
 import { initializeApp } from "firebase/app";
 import { getDatabase, ref } from "firebase/database";
 
-// Same Firebase project as the original signage. The new display lives
-// under /tv so the old /signage data keeps working until it's retired.
+// Dedicated Firebase project for the new TV (the old /shul-wall display
+// still uses the original ateret-marjan-signage project).
 export const firebaseConfig = {
-  apiKey: "AIzaSyDYDDFxJAGRJKglNrhfmUYkB8TvE0bAxhc",
-  authDomain: "ateret-marjan-signage.firebaseapp.com",
-  databaseURL: "https://ateret-marjan-signage-default-rtdb.firebaseio.com",
-  projectId: "ateret-marjan-signage",
-  storageBucket: "ateret-marjan-signage.firebasestorage.app",
-  messagingSenderId: "650374635159",
-  appId: "1:650374635159:web:56837969916a201208d3d2",
+  apiKey: "AIzaSyDqaUt8sia1FWTNPJmyrcG_5dd8QJoQo6Q",
+  authDomain: "ateret-marjan-elegant-tv.firebaseapp.com",
+  databaseURL: "https://ateret-marjan-elegant-tv-default-rtdb.firebaseio.com",
+  projectId: "ateret-marjan-elegant-tv",
+  storageBucket: "ateret-marjan-elegant-tv.firebasestorage.app",
+  messagingSenderId: "423999547564",
+  appId: "1:423999547564:web:6a0a574a3c886112ba5709",
 };
 
 export const app = initializeApp(firebaseConfig);

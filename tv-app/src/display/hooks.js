@@ -47,8 +47,13 @@ export function useNow(ms = 1000) {
 export function useStage(w = 1920, h = 1080) {
   const calc = () => {
     const W = window.innerWidth, H = window.innerHeight;
-    const scale = Math.min(W / w, H / h);
-    return { scale, w: Math.round(W / scale), h: Math.round(H / scale) };
+    // Fill TV-like shapes (4:3 up to ultra-wide); anything taller, like a phone
+    // held upright, is letterboxed instead of stretched into a giant stage.
+    const aspect = Math.min(2.6, Math.max(4 / 3, W / H));
+    const sw = Math.max(w, Math.round(h * aspect));
+    const sh = Math.max(h, Math.round(sw / aspect));
+    const scale = Math.min(W / sw, H / sh);
+    return { scale, w: sw, h: sh };
   };
   const [stage, setStage] = useState(calc);
   useEffect(() => {

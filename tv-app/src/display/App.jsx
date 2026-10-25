@@ -13,6 +13,11 @@ const HOLD = params.get("hold"); // schedule | flyer | announcement (dashboard p
 const FORCE_THEME = params.get("theme");
 // /tv/flipped sets window.__TV_FLIP__ for a TV mounted upside down.
 const FLIP = !!window.__TV_FLIP__ || params.has("flip");
+// Phones and tablets (and low-memory devices) get the light version: the full
+// glass/light effects can exhaust a phone browser's memory and crash the tab.
+const HANDHELD = (navigator.maxTouchPoints > 0 && Math.min(screen.width, screen.height) < 900)
+  || (navigator.deviceMemory && navigator.deviceMemory <= 2)
+  || params.has("lite");
 const SCHEDULE = { kind: "schedule", key: "schedule" };
 
 export default function App() {
@@ -113,7 +118,7 @@ export default function App() {
   };
 
   return (
-    <div className={`viewport theme-${themeId} ${theme.dark ? "is-dark" : "is-light"} fx-${tv.settings.effects === "lite" ? "lite" : "full"} tr-${tv.settings.transition || "fade"} ${stage.w / stage.h < 1.6 ? "is-narrow" : ""}`} style={{ ...theme.vars, "--sky": sky }}>
+    <div className={`viewport theme-${themeId} ${theme.dark ? "is-dark" : "is-light"} fx-${tv.settings.effects === "lite" || HANDHELD ? "lite" : "full"} tr-${tv.settings.transition || "fade"} ${stage.w / stage.h < 1.6 ? "is-narrow" : ""}`} style={{ ...theme.vars, "--sky": sky }}>
       <div
         className="stage"
         style={{ width: stage.w, height: stage.h, transform: `translate(-50%, -50%) scale(${stage.scale})${flip ? " rotate(180deg)" : ""}` }}
@@ -122,11 +127,9 @@ export default function App() {
           <div className="amb-photo" />
           <div className="amb-tint" />
           <div className="amb-sky" />
-          <div className="orb orb-a" />
-          <div className="orb orb-b" />
-          <div className="orb orb-c" />
+          {!HANDHELD && <><div className="orb orb-a" /><div className="orb orb-b" /><div className="orb orb-c" /></>}
           <div className="amb-vignette" />
-          <div className="amb-grain" />
+          {!HANDHELD && <div className="amb-grain" />}
         </div>
         {prev && (
           <div className="layer layer-out" key={"out" + prev.n}>{render(prev.slide)}</div>

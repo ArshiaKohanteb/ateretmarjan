@@ -4,9 +4,13 @@ import { Segmented, Toggle } from "../ui.jsx";
 import { patchTv, isDemo } from "../../shared/store.js";
 
 // The TV exactly as it is right now, beside whatever you're editing.
+// On phones the preview only loads on request, so the dashboard stays light.
+const SMALL = typeof window !== "undefined" && window.matchMedia("(max-width: 1000px)").matches;
+
 export default function LivePreview({ tv, inline = false }) {
   const [hold, setHold] = useState("");
-  const src = `/tv/?preview${isDemo() ? "&demo" : ""}${hold ? `&hold=${hold}` : ""}`;
+  const [show, setShow] = useState(!SMALL);
+  const src = `/tv/?preview${isDemo() ? "&demo" : ""}${hold ? `&hold=${hold}` : ""}${SMALL ? "&lite" : ""}`;
   const s = tv.settings;
   return (
     <>
@@ -15,7 +19,10 @@ export default function LivePreview({ tv, inline = false }) {
           <span>Live on the TV</span>
           <a className="icon-btn" href={src} target="_blank" rel="noreferrer" aria-label="Open full screen" title="Open full screen"><ExternalLink size={17} /></a>
         </div>
-        <div className="preview"><iframe key={src} src={src} title="TV preview" /></div>
+        <div className="preview">
+          {show ? <iframe key={src} src={src} title="TV preview" />
+            : <button className="preview-start" onClick={() => setShow(true)}>Tap to load the live preview</button>}
+        </div>
         <Segmented small value={hold} onChange={setHold} options={[
           { value: "", label: "Rotation" }, { value: "schedule", label: "Times" },
           { value: "flyer", label: "Flyers" }, { value: "announcement", label: "Slides" }, { value: "community", label: "Collage" },

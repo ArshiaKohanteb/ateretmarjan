@@ -437,3 +437,9 @@ body { background: #050F28; cursor: none; -webkit-font-smoothing: antialiased; }
 .clock-hero { line-height: 1; }
 .clock-hero .clock-time { font-size: 196px; line-height: 1; }
 .now-rule { margin: 6px 0 18px; }
+
+/* Light mode also drops the heavy layers that cost memory */
+.fx-lite .amb-grain { display: none; }
+.fx-lite .orb { will-change: auto; }
+.fx-lite .backdrop img { filter: brightness(.45); }
+.fx-lite .layer-in { animation-name: layerIn; }

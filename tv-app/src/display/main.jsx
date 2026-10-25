@@ -13,6 +13,16 @@ if (at && !isNaN(Date.parse(at))) {
 }
 
 
+// Show the mouse while it moves; hide it after a few still seconds so it never sits on the TV.
+let idle;
+const wake = () => {
+  document.body.classList.remove("cursor-idle");
+  clearTimeout(idle);
+  idle = setTimeout(() => document.body.classList.add("cursor-idle"), 3000);
+};
+["mousemove", "mousedown", "wheel"].forEach((e) => window.addEventListener(e, wake, { passive: true }));
+document.body.classList.add("cursor-idle");
+
 startZmanimEngine();
 
 createRoot(document.getElementById("root")).render(<App />);

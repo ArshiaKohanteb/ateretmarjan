@@ -3,7 +3,8 @@
    Heebo (all Hebrew). */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html, body, #root { width: 100%; height: 100%; overflow: hidden; }
-body { background: #050F28; cursor: none; -webkit-font-smoothing: antialiased; }
+body { background: #050F28; -webkit-font-smoothing: antialiased; }
+body.cursor-idle, body.cursor-idle * { cursor: none !important; }
 
 .viewport {
   position: fixed; inset: 0; overflow: hidden;

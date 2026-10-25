@@ -208,32 +208,50 @@ function MazalTovScene({ slide, tv, sched, tz }) {
 }
 
 // ── Meal sponsor ──
+// One centred card, framed like a formal invitation. A memorial dedication
+// gets a quietly flickering candle above the text.
+
+function Candle() {
+  return (
+    <svg className="candle" viewBox="0 0 60 120" aria-hidden="true">
+      <defs>
+        <radialGradient id="flame-glow"><stop offset="0" stopColor="#FFE7A8" stopOpacity=".9" /><stop offset="1" stopColor="#FFB84D" stopOpacity="0" /></radialGradient>
+        <linearGradient id="flame" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="#FFF6D8" /><stop offset=".6" stopColor="#FFC65C" /><stop offset="1" stopColor="#E88A2A" /></linearGradient>
+        <linearGradient id="wax" x1="0" x2="1"><stop offset="0" stopColor="#EDE6D8" /><stop offset=".5" stopColor="#FFFFFF" /><stop offset="1" stopColor="#D9D0BF" /></linearGradient>
+      </defs>
+      <circle className="flame-glow" cx="30" cy="30" r="28" fill="url(#flame-glow)" />
+      <path className="flame" d="M30 8 C38 22 40 32 30 44 C20 32 22 22 30 8 Z" fill="url(#flame)" />
+      <line x1="30" y1="44" x2="30" y2="52" stroke="#3A2F25" strokeWidth="2" />
+      <rect x="20" y="52" width="20" height="62" rx="3" fill="url(#wax)" />
+    </svg>
+  );
+}
 
 function SponsorScene({ slide, tv, sched, tz }) {
   const a = slide.item;
   const meal = a.meal || "Kiddush";
-  const ded = DEDICATIONS[a.dedication || "none"] ?? "";
+  const dedKey = a.dedication || "none";
+  const ded = DEDICATIONS[dedKey] ?? "";
+  const name = a.title || "";
   return (
-    <div className="scene scene-sponsor">
-      <section className="sponsor-meal glass">
-        <Brand tv={tv} small />
-        <h1 className="rise" style={{ animationDelay: ".15s" }}>
-          <span className="sponsor-week">This week’s</span>
-          <span className={`sponsor-meal-name ${meal.length > 10 ? "m-s" : ""}`}>{meal}</span>
-        </h1>
-      </section>
-      <section className="sponsor-who glass">
-        <p className="sponsor-by rise" style={{ animationDelay: ".45s" }}>is sponsored by</p>
-        <p className={`sponsor-name rise ${(a.title || "").length > 30 ? "n-s" : ""}`} style={{ animationDelay: ".6s" }} dir="auto">{a.title}</p>
-        {ded && a.body && (
-          <div className="sponsor-ded rise" style={{ animationDelay: ".85s" }}>
-            <span>{ded}</span>
-            <b dir="auto">{a.body}</b>
-          </div>
-        )}
-        {!ded && a.body && <p className="sponsor-note rise" style={{ animationDelay: ".85s" }} dir="auto">{a.body}</p>}
-        <div className="sponsor-clock"><Clock tz={tz} className="clock-foot" /></div>
-      </section>
+    <div className={`scene scene-sponsor ded-${dedKey}`}>
+      <div className="sponsor-card glass">
+        <div className="sponsor-frame">
+          {dedKey === "memory" ? <Candle /> : <Ornament className="sponsor-orn rise" />}
+          <p className="sponsor-kicker rise" style={{ animationDelay: ".1s" }}>This week’s</p>
+          <h1 className={`sponsor-meal rise ${meal.length > 10 ? "m-s" : ""}`} style={{ animationDelay: ".2s" }}>{meal}</h1>
+          <p className="sponsor-by rise" style={{ animationDelay: ".4s" }}>is graciously sponsored by</p>
+          <p className={`sponsor-name rise ${name.length > 28 ? "n-s" : ""}`} style={{ animationDelay: ".55s" }} dir="auto">{name}</p>
+          {a.body && (
+            <div className="sponsor-ded rise" style={{ animationDelay: ".8s" }}>
+              <Ornament />
+              {ded && <span>{ded}</span>}
+              <b dir="auto">{a.body}</b>
+            </div>
+          )}
+        </div>
+      </div>
+      <SlideFoot tv={tv} sched={sched} tz={tz} />
     </div>
   );
 }

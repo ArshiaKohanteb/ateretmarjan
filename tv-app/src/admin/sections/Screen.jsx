@@ -66,6 +66,7 @@ const ELEMENTS = [
 ];
 const BAR = [
   ["showTicker", "Announcements"],
+  ["showLevana", "Birkat HaLevana (Sephardic times)"],
   ["showLimudim", "Daf Yomi"],
   ["showMakam", "Makam of the week"],
   ["showHiloulot", "Hilulot"],

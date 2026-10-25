@@ -38,6 +38,7 @@ export const DEFAULT_SETTINGS = {
   showHiloulot: true,
   showMakam: true,
   showTicker: true,
+  showLevana: true,
   showDonate: true,
   tickerSpeed: 60,
   donate: {

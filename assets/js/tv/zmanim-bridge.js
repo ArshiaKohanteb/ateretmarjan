@@ -178,6 +178,12 @@ async function calculate() {
     if (yt && [10, 13].includes(first.getYomTovIndex())) melakha.greetingHe = first.getYomTovIndex() === 13 ? "גמר חתימה טובה" : "שנה טובה";
   });
 
+  // Birkat HaLevana window, Sephardic custom: 7 days after the molad until 15 days.
+  const levana = safe("levana", () => {
+    const r = jCal.birkathHalevanaCheck(zmanCalc);
+    return { start: r.data.start.epochMilliseconds, end: r.data.end.epochMilliseconds };
+  }, null);
+
   let makam = "";
   if (melakhaJCal) {
     try {
@@ -220,6 +226,7 @@ async function calculate() {
     shabbatDate: melakhaJCal ? melakhaJCal.getDate().toString() : null,
     melakha,
     calendar,
+    levana,
     candleLighting,
     havdalah,
     rabbeinuTam,

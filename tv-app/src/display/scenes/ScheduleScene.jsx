@@ -61,73 +61,94 @@ function Timetable({ groups, now, next, tz }) {
   );
 }
 
-// The day's zmanim drawn where they really fall on the sun's path, with a
-// live sun moving along it. Labels sit in even columns beneath, each tied to
-// its point on the arc by a fine gold line.
-const SW = 1500, SH = 100, BASE = 76, AMP = 64;
+// The day's zmanim on the sun's arc, with a live sun moving along it. Drawn at
+// the panel's real pixel width so nothing stretches. Labels sit in even columns
+// below; only the next zman gets a fine gold line up to its point on the arc.
+const SH = 92, BASE = 82, AMP = 70;
+
+function useWidth(ref) {
+  const [w, setW] = useState(1500);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const set = () => setW(Math.max(200, Math.round(el.clientWidth)));
+    set();
+    if (typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(set);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  return w;
+}
 
 function SunPath({ z, hidden, now, tz, today }) {
-  if (!z?.days) return <div className="zband glass" />;
-  const todays = z.days[today] || {};
+  const body = useRef(null);
+  const SW = useWidth(body);
+  const todays = z?.days?.[today] || {};
   const afterNightfall = todays.tzet && now > todays.tzet;
-  const vals = z.days[afterNightfall ? addDays(today, 1) : today] || {};
-  const list = (z.zmanimList || []).filter((x) => !hidden.includes(x.id) && vals[x.id]).slice(0, 9);
-  if (!list.length || !vals.sunrise || !vals.sunset) return <div className="zband glass" />;
+  const vals = z?.days?.[afterNightfall ? addDays(today, 1) : today] || {};
+  const list = (z?.zmanimList || []).filter((x) => !hidden.includes(x.id) && vals[x.id]).slice(0, 9);
+  const ready = list.length && vals.sunrise && vals.sunset;
 
-  const t0 = Math.min(...list.map((x) => vals[x.id]), vals.sunrise) - 25 * 60_000;
-  const t1 = Math.max(...list.map((x) => vals[x.id]), vals.sunset) + 25 * 60_000;
-  const sr = vals.sunrise, ss = vals.sunset;
-  const X = (t) => ((t - t0) / (t1 - t0)) * SW;
-  const Y = (t) => {
-    if (t >= sr && t <= ss) return BASE - AMP * Math.sin((Math.PI * (t - sr)) / (ss - sr));
-    const d = t < sr ? sr - t : t - ss;
-    return BASE + 16 * Math.min(1, d / (60 * 60_000));
-  };
-  const pts = [];
-  for (let i = 0; i <= 160; i++) { const t = t0 + ((t1 - t0) * i) / 160; pts.push(`${X(t).toFixed(1)},${Y(t).toFixed(1)}`); }
-  const path = "M" + pts.join(" L");
-  const nowIn = !afterNightfall && now >= t0 && now <= t1;
+  let arc = "", X = () => 0, Y = () => 0;
+  if (ready) {
+    const t0 = Math.min(...list.map((x) => vals[x.id]), vals.sunrise) - 20 * 60_000;
+    const t1 = Math.max(...list.map((x) => vals[x.id]), vals.sunset) + 20 * 60_000;
+    const sr = vals.sunrise, ss = vals.sunset;
+    X = (t) => 12 + ((t - t0) / (t1 - t0)) * (SW - 24);
+    // Above the horizon by day; a gentle dip below it before sunrise and after sunset.
+    Y = (t) => {
+      if (t >= sr && t <= ss) return BASE - AMP * Math.sin((Math.PI * (t - sr)) / (ss - sr));
+      const d = (t < sr ? sr - t : t - ss) / (90 * 60_000);
+      return BASE + 8 * Math.min(1, d);
+    };
+    const pts = [];
+    for (let i = 0; i <= 120; i++) { const t = t0 + ((t1 - t0) * i) / 120; pts.push(`${X(t).toFixed(1)},${Y(t).toFixed(1)}`); }
+    arc = "M" + pts.join(" L");
+  }
+  const nowIn = ready && !afterNightfall && X(now) >= 0 && X(now) <= SW;
   const nx = nowIn ? X(now) : afterNightfall ? 0 : SW;
-  const nextId = afterNightfall ? null : list.find((x) => vals[x.id] > now)?.id;
-  const col = (i) => ((i + 0.5) * SW) / list.length;
-  const isDay = now >= sr && now <= ss;
+  const nextIdx = afterNightfall ? -1 : list.findIndex((x) => vals[x.id] > now);
+  const col = (i) => ((i + 0.5) * SW) / Math.max(1, list.length);
+  const isDay = vals.sunrise && now >= vals.sunrise && now <= vals.sunset;
 
   return (
     <section className="zband glass sunpath">
       {afterNightfall && <span className="sp-tomorrow">Tomorrow</span>}
-      <div className="sp-body">
-        <svg className="sp-svg" viewBox={`0 0 ${SW} ${SH}`} preserveAspectRatio="none" aria-hidden="true">
-          <defs>
-            <linearGradient id="sp-gold" x1="0" x2="1" y1="0" y2="0">
-              <stop offset="0" stopColor="var(--acc-2)" />
-              <stop offset="1" stopColor="var(--acc-1)" />
-            </linearGradient>
-            <radialGradient id="sp-sun">
-              <stop offset="0" stopColor="#FFFBEA" />
-              <stop offset=".35" stopColor="var(--acc-1)" />
-              <stop offset="1" stopColor="var(--acc-1)" stopOpacity="0" />
-            </radialGradient>
-            <clipPath id="sp-past"><rect x="0" y="0" width={Math.max(0, nx)} height={SH} /></clipPath>
-          </defs>
-          <line className="sp-horizon" x1="0" x2={SW} y1={BASE} y2={BASE} />
-          <path className="sp-arc" d={path} />
-          <path className="sp-arc-past" d={path} clipPath="url(#sp-past)" />
+      <div className="sp-body" ref={body}>
+        {ready ? (
+          <svg className="sp-svg" width={SW} height={SH} viewBox={`0 0 ${SW} ${SH}`} aria-hidden="true">
+            <defs>
+              <linearGradient id="sp-gold" x1="0" x2="1" y1="0" y2="0">
+                <stop offset="0" stopColor="var(--acc-2)" />
+                <stop offset="1" stopColor="var(--acc-1)" />
+              </linearGradient>
+              <radialGradient id="sp-sun">
+                <stop offset="0" stopColor="#FFFBEA" />
+                <stop offset=".35" stopColor="var(--acc-1)" />
+                <stop offset="1" stopColor="var(--acc-1)" stopOpacity="0" />
+              </radialGradient>
+              <clipPath id="sp-past"><rect x="0" y="0" width={Math.max(0, nx)} height={SH} /></clipPath>
+            </defs>
+            <path className="sp-arc" d={arc} />
+            <path className="sp-arc-past" d={arc} clipPath="url(#sp-past)" />
+            {nextIdx >= 0 && (
+              <line className="sp-leader" x1={X(vals[list[nextIdx].id])} y1={Y(vals[list[nextIdx].id])} x2={col(nextIdx)} y2={SH} />
+            )}
+            {list.map((x, i) => (
+              <circle key={x.id} className={`sp-point ${vals[x.id] < now && !afterNightfall ? "is-past" : ""} ${i === nextIdx ? "is-next" : ""}`} cx={X(vals[x.id])} cy={Y(vals[x.id])} r={i === nextIdx ? 6 : 4} />
+            ))}
+            {nowIn && (
+              <g className={isDay ? "sp-sun" : "sp-moon"} transform={`translate(${nx} ${Y(now)})`}>
+                <circle r="30" fill="url(#sp-sun)" className="sp-glow" />
+                <circle r="8" className="sp-core" />
+              </g>
+            )}
+          </svg>
+        ) : <div style={{ height: SH }} />}
+        <div className="sp-labels" style={{ "--n": Math.max(1, list.length) }}>
           {list.map((x, i) => (
-            <line key={"l" + x.id} className={`sp-leader ${x.id === nextId ? "is-next" : ""}`} x1={X(vals[x.id])} y1={Y(vals[x.id])} x2={col(i)} y2={SH} />
-          ))}
-          {list.map((x) => (
-            <circle key={"p" + x.id} className={`sp-point ${vals[x.id] < now && !afterNightfall ? "is-past" : ""} ${x.id === nextId ? "is-next" : ""}`} cx={X(vals[x.id])} cy={Y(vals[x.id])} r={x.id === nextId ? 7 : 5} />
-          ))}
-          {nowIn && (
-            <g className={isDay ? "sp-sun" : "sp-moon"} transform={`translate(${nx} ${Y(now)})`}>
-              <circle r="34" fill="url(#sp-sun)" className="sp-glow" />
-              <circle r="9" className="sp-core" />
-            </g>
-          )}
-        </svg>
-        <div className="sp-labels" style={{ "--n": list.length }}>
-          {list.map((x) => (
-            <div key={x.id} className={`zman ${!afterNightfall && vals[x.id] < now ? "is-past" : ""} ${x.id === nextId ? "is-next" : ""}`}>
+            <div key={x.id} className={`zman ${!afterNightfall && vals[x.id] < now ? "is-past" : ""} ${i === nextIdx ? "is-next" : ""}`}>
               <span className="zman-label">{x.label}</span>
               <Time epoch={vals[x.id]} tz={tz} />
             </div>
@@ -136,6 +157,21 @@ function SunPath({ z, hidden, now, tz, today }) {
       </div>
     </section>
   );
+}
+
+// "Birkat HaLevana tonight" when tonight's nightfall falls inside the window,
+// or a heads-up a couple of days before it opens.
+function levanaMessage(z, today) {
+  const L = z?.levana;
+  const tzet = z?.days?.[today]?.tzet;
+  if (!L || !tzet) return null;
+  const day = (t) => new Intl.DateTimeFormat("en-US", { timeZone: z.timezone, weekday: "long" }).format(t);
+  if (tzet >= L.start && tzet < L.end) {
+    const last = L.end - tzet < 24 * 3600_000;
+    return last ? "Birkat HaLevana · ברכת הלבנה · Tonight is the last night" : `Birkat HaLevana · ברכת הלבנה · Can be said tonight, until ${day(L.end)} night`;
+  }
+  if (L.start > tzet && L.start - tzet < 3 * 24 * 3600_000) return `Birkat HaLevana · ברכת הלבנה · Begins ${day(L.start)} night`;
+  return null;
 }
 
 // One message at a time along the bottom, so it can be read from the back of the room.
@@ -147,6 +183,10 @@ function Bulletin({ tv, z, today }) {
     (tv.announcements || [])
       .filter((a) => a.ticker !== false && isLive(a, today) && (a.style || "info") === "info")
       .forEach((a) => items.push(a.body || a.title));
+  }
+  if (s.showLevana !== false) {
+    const msg = levanaMessage(z, today);
+    if (msg) items.push(msg);
   }
   const learning = [];
   if (s.showLimudim) z?.limudim?.slice(0, 1).forEach((l) => learning.push(`Daf Yomi  ${l.ref}`));
@@ -190,15 +230,19 @@ export default function ScheduleScene({ tv, z, sched, now, tz }) {
 
         <div className="now-main">
           <Clock showSeconds={s.showSeconds} tz={tz} className="clock-hero" />
-          {on("showCivilDate") && <div className="now-date">{z?.hebrewDate?.civil || ""}</div>}
-          {on("showHebrewDate") && z?.hebrewDate?.hebrew && <div className="now-hebdate" dir="rtl">{z.hebrewDate.hebrew}</div>}
-          {(pill || greeting) && <Ornament />}
-          {(pill || greeting) && (
-            <div className="now-week">
-              {pill && <span className="parasha" dir="rtl">{pill}</span>}
-              {greeting && <span className="greeting">{greeting.en}</span>}
+          <Ornament className="now-rule" />
+          <div className="now-dates">
+            <div className="now-dates-l">
+              {on("showCivilDate") && <div className="now-date">{z?.hebrewDate?.civil || ""}</div>}
+              {on("showHebrewDate") && z?.hebrewDate?.hebrew && <div className="now-hebdate" dir="rtl">{z.hebrewDate.hebrew}</div>}
             </div>
-          )}
+            {(pill || greeting) && (
+              <div className="now-dates-r">
+                {pill && <span className="parasha" dir="rtl">{pill}</span>}
+                {greeting && <span className="greeting">{greeting.en}</span>}
+              </div>
+            )}
+          </div>
         </div>
 
         {!on("showNextCard") ? null : sched.next ? (

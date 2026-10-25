@@ -18,9 +18,10 @@ export function Brand({ tv, small = false }) {
 export function Clock({ showSeconds, tz, className = "" }) {
   const now = useNow(1000);
   const f = formatEpoch(now, tz, showSeconds);
+  const [h, ...rest] = f.time.split(":");
   return (
     <div className={`clock ${className}`}>
-      <span className="clock-time">{f.time}</span>
+      <span className="clock-time">{h}<span className="clock-colon">:</span>{rest.join(":")}</span>
       <span className="clock-ampm">{f.ampm}</span>
     </div>
   );

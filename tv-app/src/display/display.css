@@ -1,6 +1,6 @@
 /* Ateret Marjan TV. A fixed 1920x1080 stage.
    Faces: Red Hat Display (times, text), Cormorant Garamond (titles),
-   Noto Serif Hebrew (all Hebrew). */
+   Heebo (all Hebrew). */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html, body, #root { width: 100%; height: 100%; overflow: hidden; }
 body { background: #050F28; cursor: none; -webkit-font-smoothing: antialiased; }
@@ -26,7 +26,7 @@ body { background: #050F28; cursor: none; -webkit-font-smoothing: antialiased; }
 .rise { animation: rise 1s cubic-bezier(.2,.7,.2,1) both; }
 @keyframes rise { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: none; } }
 
-[dir="rtl"] { font-family: "Noto Serif Hebrew", serif; }
+[dir="rtl"] { font-family: "Heebo", "Red Hat Display", sans-serif; }
 .serif { font-family: "Cormorant Garamond", serif; }
 .scene { position: absolute; inset: 0; }
 
@@ -289,7 +289,7 @@ body { background: #050F28; cursor: none; -webkit-font-smoothing: antialiased; }
 .motif path, .motif circle { stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw 1.5s .5s cubic-bezier(.6,0,.2,1) forwards; }
 .motif circle + circle { animation-delay: .8s; }
 @keyframes draw { to { stroke-dashoffset: 0; } }
-.mazal-he { font-family: "Noto Serif Hebrew", serif; font-size: 230px; font-weight: 700; line-height: 1.05; filter: drop-shadow(0 10px 40px var(--acc-glow)); }
+.mazal-he { font-family: "Heebo", sans-serif; font-size: 230px; font-weight: 800; line-height: 1.05; filter: drop-shadow(0 10px 40px var(--acc-glow)); }
 .mazal-he span { display: inline-block; animation: drop .85s cubic-bezier(.2,1.35,.3,1) both; background: linear-gradient(180deg, var(--acc-1) 20%, var(--acc-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 @keyframes drop { from { opacity: 0; transform: translateY(-110px) scale(.8) rotate(-6deg); } to { opacity: 1; transform: none; } }
 .mazal-inner .ornament { max-width: 640px; margin: 18px 0 6px; }
@@ -300,22 +300,33 @@ body { background: #050F28; cursor: none; -webkit-font-smoothing: antialiased; }
 .scene-mazal .slide-foot { z-index: 3; }
 
 /* ── Meal sponsor ── */
-.scene-sponsor { display: grid; grid-template-columns: 820px 1fr; gap: 28px; padding: 44px 48px; }
-.sponsor-meal { padding: 52px 64px 64px; display: flex; flex-direction: column; justify-content: space-between; }
-.sponsor-meal h1 { display: flex; flex-direction: column; font-weight: inherit; }
-.sponsor-week { font-family: "Cormorant Garamond", serif; font-size: 72px; font-style: italic; font-weight: 500; color: var(--muted); }
-.sponsor-meal-name { font-family: "Cormorant Garamond", serif; font-size: 190px; font-weight: 600; letter-spacing: -0.02em; line-height: .9; margin-top: 6px; background: linear-gradient(180deg, var(--acc-1), var(--acc-2)); -webkit-background-clip: text; background-clip: text; color: transparent; padding-bottom: .08em; }
-.sponsor-meal-name.m-s { font-size: 128px; }
-.sponsor-who { padding: 80px 90px; display: flex; flex-direction: column; justify-content: center; }
-.sponsor-by { font-size: 40px; color: var(--muted); font-weight: 500; }
-.sponsor-name { font-size: 104px; font-weight: 700; letter-spacing: -0.035em; line-height: 1.02; margin-top: 14px; }
-.sponsor-name.n-s { font-size: 76px; }
-.sponsor-ded { margin-top: 52px; display: flex; flex-direction: column; gap: 8px; }
-.sponsor-ded span, .sponsor-note { font-size: 38px; color: var(--muted); font-weight: 500; }
-.sponsor-ded b { font-family: "Cormorant Garamond", serif; font-size: 72px; font-weight: 600; line-height: 1.05; color: var(--acc-1); }
+.scene-sponsor { display: flex; align-items: center; justify-content: center; padding: 56px 120px 150px; }
+.sponsor-card { width: 100%; max-width: 1480px; padding: 22px; border-radius: 48px; }
+.sponsor-frame {
+  position: relative; display: flex; flex-direction: column; align-items: center; text-align: center;
+  padding: 56px 90px 64px; border-radius: 32px;
+  border: 1.5px solid color-mix(in srgb, var(--acc-2) 55%, transparent);
+  box-shadow: inset 0 0 0 7px transparent, inset 0 0 0 8px color-mix(in srgb, var(--acc-2) 22%, transparent);
+}
+.sponsor-orn { max-width: 420px; margin-bottom: 18px; }
+.sponsor-kicker { font-family: "Cormorant Garamond", serif; font-style: italic; font-size: 52px; font-weight: 500; color: var(--muted); line-height: 1; }
+.sponsor-meal { font-family: "Cormorant Garamond", serif; font-size: 150px; font-weight: 600; line-height: 1; letter-spacing: -0.01em; margin-top: 6px; padding-bottom: .06em; background: linear-gradient(180deg, var(--acc-1), var(--acc-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.sponsor-meal.m-s { font-size: 112px; }
+.sponsor-by { font-size: 32px; font-weight: 500; letter-spacing: .02em; color: var(--muted); margin-top: 26px; }
+.sponsor-name { font-family: "Cormorant Garamond", serif; font-size: 104px; font-weight: 600; line-height: 1.05; margin-top: 8px; max-width: 1240px; }
+.sponsor-name.n-s { font-size: 80px; }
+.sponsor-ded { display: flex; flex-direction: column; align-items: center; gap: 6px; margin-top: 30px; }
+.sponsor-ded .ornament { max-width: 360px; margin-bottom: 18px; }
+.sponsor-ded span { font-size: 30px; font-weight: 500; color: var(--muted); letter-spacing: .02em; }
+.sponsor-ded b { font-family: "Cormorant Garamond", serif; font-size: 64px; font-weight: 600; line-height: 1.1; color: var(--acc-1); }
 .is-light .sponsor-ded b { color: var(--acc-2); }
-.sponsor-note { margin-top: 44px; }
-.sponsor-clock { position: absolute; right: 80px; bottom: 56px; }
+.candle { width: 60px; height: 120px; margin-bottom: 14px; overflow: visible; filter: drop-shadow(0 0 18px rgba(255, 190, 90, .45)); }
+.candle .flame { transform-origin: 30px 44px; animation: flicker 2.6s ease-in-out infinite; }
+.candle .flame-glow { transform-origin: 30px 30px; animation: glow 3.2s ease-in-out infinite; }
+@keyframes flicker { 0%, 100% { transform: scale(1, 1) skewX(0); } 25% { transform: scale(.96, 1.05) skewX(2deg); } 50% { transform: scale(1.03, .97) skewX(-1.5deg); } 75% { transform: scale(.98, 1.03) skewX(1deg); } }
+@keyframes glow { 50% { transform: scale(1.12); opacity: .75; } }
+.ded-memory .sponsor-ded b { color: var(--ink); }
+.fx-lite .candle .flame, .fx-lite .candle .flame-glow { animation: none; }
 
 .splash { position: absolute; inset: 0; display: grid; place-items: center; z-index: 2; }
 .splash .crown { width: 140px; height: 134px; animation: pulse 2.4s ease-in-out infinite; }
@@ -347,15 +358,13 @@ body { background: #050F28; cursor: none; -webkit-font-smoothing: antialiased; }
 .sunpath { padding: 14px 40px 10px; align-items: stretch; position: relative; }
 .sp-tomorrow { position: absolute; left: 44px; top: 14px; font-family: "Cormorant Garamond", serif; font-size: 34px; font-weight: 600; color: var(--acc-1); }
 .sp-body { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-.sp-svg { display: block; width: 100%; height: 100px; overflow: visible; }
-.sp-horizon { stroke: var(--glass-border); stroke-width: 1.5; stroke-dasharray: 3 9; }
-.sp-arc { fill: none; stroke: var(--muted); stroke-opacity: .45; stroke-width: 2.5; stroke-dasharray: 1 9; stroke-linecap: round; }
-.sp-arc-past { fill: none; stroke: url(#sp-gold); stroke-width: 4; stroke-linecap: round; filter: drop-shadow(0 0 8px var(--acc-glow)); }
-.sp-leader { stroke: var(--glass-border); stroke-width: 1.2; }
-.sp-leader.is-next { stroke: var(--acc-1); stroke-width: 1.8; }
-.sp-point { fill: var(--ink); stroke: var(--bg); stroke-width: 2; }
-.sp-point.is-past { fill: var(--acc-2); }
-.sp-point.is-next { fill: var(--acc-1); filter: drop-shadow(0 0 8px var(--acc-glow)); }
+.sp-svg { display: block; overflow: visible; }
+.sp-arc { fill: none; stroke: var(--ink); stroke-opacity: .16; stroke-width: 2; stroke-linecap: round; }
+.sp-arc-past { fill: none; stroke: url(#sp-gold); stroke-width: 3; stroke-linecap: round; filter: drop-shadow(0 0 6px var(--acc-glow)); }
+.sp-leader { stroke: var(--acc-1); stroke-width: 1.5; stroke-opacity: .8; }
+.sp-point { fill: var(--bg); stroke: var(--ink); stroke-opacity: .55; stroke-width: 1.5; }
+.sp-point.is-past { fill: var(--acc-2); stroke: var(--acc-2); stroke-opacity: 1; }
+.sp-point.is-next { fill: var(--acc-1); stroke: var(--acc-1); stroke-opacity: 1; filter: drop-shadow(0 0 8px var(--acc-glow)); }
 .sp-glow { animation: sun-pulse 4s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
 .sp-sun .sp-core { fill: #FFF8E0; }
 .sp-moon .sp-core { fill: #E4ECFF; }
@@ -407,3 +416,24 @@ body { background: #050F28; cursor: none; -webkit-font-smoothing: antialiased; }
 
 /* Taller-than-16:9 screens: give the hero a little more breathing room */
 .is-narrow .clock-hero .clock-time { font-size: 200px; }
+
+/* ── Hero v3: clock and dates sit low, parasha on the right ── */
+.now-main { justify-content: flex-end; align-items: stretch; gap: 0; padding-bottom: 6px; }
+.clock-hero { align-items: flex-start; }
+.clock-hero .clock-time { font-size: 212px; font-weight: 200; letter-spacing: -0.055em; }
+.clock-hero .clock-ampm { font-size: 34px; font-weight: 700; letter-spacing: .14em; margin-top: 30px; margin-left: 18px; }
+.clock-colon { display: inline-block; animation: colon 2s ease-in-out infinite; padding: 0 .02em; transform: translateY(-.04em); }
+@keyframes colon { 50% { opacity: .28; } }
+.now-rule { max-width: none; margin: 14px 0 16px; }
+.now-dates { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; }
+.now-dates-l { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.now-dates-r { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; text-align: right; flex: none; }
+.now-date { font-size: 30px; font-weight: 500; color: var(--muted); margin-top: 0; }
+.now-hebdate { font-size: 44px; font-weight: 400; line-height: 1.15; letter-spacing: 0; }
+.now-dates-r .parasha { font-size: 30px; font-weight: 500; padding: 8px 24px 10px; }
+.now-dates-r .greeting { font-size: 36px; }
+.fx-lite .clock-colon { animation: none; }
+.is-narrow .clock-hero .clock-time { font-size: 220px; }
+.clock-hero { line-height: 1; }
+.clock-hero .clock-time { font-size: 196px; line-height: 1; }
+.now-rule { margin: 6px 0 18px; }

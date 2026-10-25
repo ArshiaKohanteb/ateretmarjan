@@ -3,6 +3,7 @@ import { useTv, useZmanim, useNow, useStage, useImageSizes } from "./hooks.js";
 import { buildContent, slideSeconds } from "./rotation.js";
 import { buildSchedule, minutesUntil, localInfo, setHour24, TIMEZONE } from "../shared/schedule.js";
 import { THEMES, resolveTheme } from "../shared/themes.js";
+import { useHebrewFont } from "../shared/fonts.js";
 import ScheduleScene from "./scenes/ScheduleScene.jsx";
 import { FlyerScene, AnnouncementScene } from "./scenes/ContentScenes.jsx";
 import CommunityScene from "./scenes/CommunityScene.jsx";
@@ -26,6 +27,7 @@ export default function App() {
   const sizes = useImageSizes(urls);
   const content = useMemo(() => (tv ? buildContent(tv, today, sizes) : []), [tv, today, sizes, urls.map((u) => sizes.get(u)?.w).join()]);
   setHour24(tv?.settings?.clock24);
+  useHebrewFont(tv?.settings?.hebrewFont);
   const sched = useMemo(() => (tv ? buildSchedule(tv, z, now, tz) : null), [tv, z, now, tz]);
 
   // ── Rotation ──

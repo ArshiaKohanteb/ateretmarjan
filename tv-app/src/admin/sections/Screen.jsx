@@ -3,6 +3,7 @@ import { Check, Palette, LayoutTemplate, Repeat, Clock, Type, Sun, Moon } from "
 import { Card, Field, Toggle, Stepper, Segmented, Tabs, useDraft } from "../ui.jsx";
 import { THEMES, THEME_OPTIONS } from "../../shared/themes.js";
 import { patchTv } from "../../shared/store.js";
+import { HEBREW_FONTS, useHebrewFont } from "../../shared/fonts.js";
 
 function Swatch({ id }) {
   if (id === "auto") {
@@ -150,6 +151,21 @@ function Rotation({ s, set }) {
   );
 }
 
+function HebrewFonts({ value, onChange }) {
+  HEBREW_FONTS.forEach((f) => useHebrewFont(f.id));
+  useHebrewFont(value);
+  return (
+    <div className="font-pick">
+      {HEBREW_FONTS.map((f) => (
+        <button key={f.id} className={value === f.id ? "on" : ""} onClick={() => onChange(f.id)}>
+          <span className="font-sample" dir="rtl" style={{ fontFamily: `"${f.id}"` }}>י״ד חשון · מזל טוב</span>
+          <span className="font-name">{f.id}{value === f.id && <Check size={15} />}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function ClockText({ s, set }) {
   const [text, setText] = useDraft({ shulName: s.shulName, shulNameHe: s.shulNameHe, donate: s.donate }, (v) => patchTv("settings", v));
   return (
@@ -159,6 +175,9 @@ function ClockText({ s, set }) {
           <Field label="Format"><Segmented value={s.clock24 ? "24" : "12"} onChange={(v) => set({ clock24: v === "24" })} options={[{ value: "12", label: "6:30 PM" }, { value: "24", label: "18:30" }]} /></Field>
           <Field label="Seconds"><Segmented value={s.showSeconds ? "on" : "off"} onChange={(v) => set({ showSeconds: v === "on" })} options={[{ value: "off", label: "Hide" }, { value: "on", label: "Show" }]} /></Field>
         </div>
+      </Card>
+      <Card title="Hebrew font" subtitle="Used for the Hebrew date, parasha, names and מזל טוב." icon={Type}>
+        <HebrewFonts value={s.hebrewFont || "Heebo"} onChange={(v) => set({ hebrewFont: v })} />
       </Card>
       <Card title="Names & donation details" icon={Type}>
         <div className="grid-2">

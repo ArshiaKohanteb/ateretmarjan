@@ -48,6 +48,7 @@ export const DEFAULT_SETTINGS = {
   },
   // Screen elements
   clock24: false,
+  hebrewFont: "Heebo",
   showBsd: true,
   showCivilDate: true,
   showHebrewDate: true,

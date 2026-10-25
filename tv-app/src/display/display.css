@@ -26,7 +26,7 @@ body { background: #050F28; cursor: none; -webkit-font-smoothing: antialiased; }
 .rise { animation: rise 1s cubic-bezier(.2,.7,.2,1) both; }
 @keyframes rise { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: none; } }
 
-[dir="rtl"] { font-family: "Heebo", "Red Hat Display", sans-serif; }
+[dir="rtl"] { font-family: var(--he-font, "Heebo"), "Heebo", "Red Hat Display", sans-serif; }
 .serif { font-family: "Cormorant Garamond", serif; }
 .scene { position: absolute; inset: 0; }
 
@@ -289,7 +289,7 @@ body { background: #050F28; cursor: none; -webkit-font-smoothing: antialiased; }
 .motif path, .motif circle { stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw 1.5s .5s cubic-bezier(.6,0,.2,1) forwards; }
 .motif circle + circle { animation-delay: .8s; }
 @keyframes draw { to { stroke-dashoffset: 0; } }
-.mazal-he { font-family: "Heebo", sans-serif; font-size: 230px; font-weight: 800; line-height: 1.05; filter: drop-shadow(0 10px 40px var(--acc-glow)); }
+.mazal-he { font-family: var(--he-font, "Heebo"), "Heebo", sans-serif; font-size: 230px; font-weight: 800; line-height: 1.05; filter: drop-shadow(0 10px 40px var(--acc-glow)); }
 .mazal-he span { display: inline-block; animation: drop .85s cubic-bezier(.2,1.35,.3,1) both; background: linear-gradient(180deg, var(--acc-1) 20%, var(--acc-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 @keyframes drop { from { opacity: 0; transform: translateY(-110px) scale(.8) rotate(-6deg); } to { opacity: 1; transform: none; } }
 .mazal-inner .ornament { max-width: 640px; margin: 18px 0 6px; }

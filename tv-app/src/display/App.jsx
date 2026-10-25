@@ -82,6 +82,7 @@ export default function App() {
 
   if (!tv) return <Splash />;
 
+  const sky = skyColor(z?.days?.[today], now);
   const themeId = FORCE_THEME && THEMES[FORCE_THEME] ? FORCE_THEME : resolveTheme(tv.settings, sched || {});
   const theme = THEMES[themeId];
   const flip = tv.settings.flip && !params.has("preview");
@@ -94,7 +95,7 @@ export default function App() {
   };
 
   return (
-    <div className={`viewport theme-${themeId} ${theme.dark ? "is-dark" : "is-light"} fx-${tv.settings.effects === "lite" ? "lite" : "full"}`} style={theme.vars}>
+    <div className={`viewport theme-${themeId} ${theme.dark ? "is-dark" : "is-light"} fx-${tv.settings.effects === "lite" ? "lite" : "full"}`} style={{ ...theme.vars, "--sky": sky }}>
       <div
         className="stage"
         style={{ transform: `translate(-50%, -50%) scale(${scale})${flip ? " rotate(180deg)" : ""}` }}
@@ -102,10 +103,12 @@ export default function App() {
         <div className="ambient" aria-hidden="true">
           <div className="amb-photo" />
           <div className="amb-tint" />
+          <div className="amb-sky" />
           <div className="orb orb-a" />
           <div className="orb orb-b" />
           <div className="orb orb-c" />
           <div className="amb-vignette" />
+          <div className="amb-grain" />
         </div>
         {prev && (
           <div className="layer layer-out" key={"out" + prev.n}>{render(prev.slide)}</div>
@@ -114,6 +117,18 @@ export default function App() {
       </div>
     </div>
   );
+}
+
+// A wash of colour that follows the real sky: rose at dawn, clear by day,
+// amber at sunset, deep blue after nightfall.
+function skyColor(d, now) {
+  if (!d?.sunrise || !d?.sunset) return "transparent";
+  const M = 60_000;
+  if (d.alot && now >= d.alot && now < d.sunrise + 40 * M) return "rgba(255, 150, 140, .26)";
+  if (now >= d.sunset - 70 * M && now < d.sunset + 15 * M) return "rgba(255, 168, 70, .30)";
+  if (now >= d.sunset + 15 * M && now < (d.tzet || d.sunset) + 30 * M) return "rgba(150, 90, 200, .20)";
+  if (now >= d.sunrise && now < d.sunset) return "rgba(120, 190, 255, .14)";
+  return "rgba(20, 40, 120, .25)";
 }
 
 function Splash() {

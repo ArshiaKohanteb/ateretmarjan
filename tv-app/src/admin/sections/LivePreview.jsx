@@ -25,7 +25,7 @@ export default function LivePreview({ tv, inline = false }) {
         </div>
         <Segmented small value={hold} onChange={setHold} options={[
           { value: "", label: "Rotation" }, { value: "schedule", label: "Times" },
-          { value: "flyer", label: "Flyers" }, { value: "announcement", label: "Slides" }, { value: "community", label: "Collage" },
+          { value: "flyer", label: "Flyers" }, { value: "announcement", label: "Slides" }, { value: "community", label: "Collage" }, { value: "donate", label: "Donate" },
         ]} />
       </div>
       {!inline && (

@@ -46,11 +46,14 @@ export function buildContent(tv, today, sizes) {
   if (s.showCommunity !== false && photos.length >= 3) {
     out.splice(Math.ceil(out.length / 2), 0, { kind: "community", key: "community" });
   }
+  const d = s.donate || {};
+  if (s.showDonateSlide !== false && (d.venmo || d.zelle || d.website)) out.push({ kind: "donate", key: "donate" });
   return out;
 }
 
 export function slideSeconds(slide, settings) {
   if (slide.kind === "schedule") return settings.scheduleSeconds || 30;
+  if (slide.kind === "donate") return settings.announcementSeconds || 12;
   if (slide.kind === "community") return settings.communitySeconds || 16;
   if (slide.kind === "announcement") return slide.item.seconds || settings.announcementSeconds || 12;
   const custom = Math.max(...slide.items.map((f) => f.seconds || 0));

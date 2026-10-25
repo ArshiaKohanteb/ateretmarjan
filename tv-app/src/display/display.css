@@ -443,3 +443,24 @@ body { background: #050F28; cursor: none; -webkit-font-smoothing: antialiased; }
 .fx-lite .orb { will-change: auto; }
 .fx-lite .backdrop img { filter: brightness(.45); }
 .fx-lite .layer-in { animation-name: layerIn; }
+
+/* ── Donation slide ── */
+.scene-donate { display: flex; align-items: center; justify-content: center; padding: 60px 110px; }
+.donate-card { width: 100%; max-width: 1560px; padding: 56px 80px 52px; border-radius: 48px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+.donate-card > .ornament { max-width: 420px; margin-bottom: 18px; }
+.donate-title { font-family: "Cormorant Garamond", serif; font-size: 112px; font-weight: 600; line-height: 1; padding-bottom: .06em; background: linear-gradient(180deg, var(--acc-1), var(--acc-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.donate-sub { font-size: 34px; font-weight: 500; color: var(--muted); margin-top: 14px; }
+.donate-methods { display: grid; grid-template-columns: repeat(3, 1fr); gap: 36px; width: 100%; margin-top: 48px; }
+.donate-method { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 34px 24px 30px; border-radius: 32px; background: rgba(255, 255, 255, .06); border: 1.5px solid var(--glass-border); }
+.is-light .donate-method { background: rgba(255, 255, 255, .55); }
+.qr { width: 230px; height: 230px; border-radius: 20px; margin-bottom: 10px; box-shadow: 0 18px 40px -16px rgba(0,0,0,.5); }
+.qr-blank { display: grid; place-items: center; background: linear-gradient(135deg, var(--acc-1), var(--acc-2)); }
+.qr-blank span { font-size: 120px; font-weight: 800; color: var(--acc-ink); line-height: 1; }
+.donate-label { font-size: 26px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: var(--acc-1); }
+.is-light .donate-label { color: var(--acc-2); }
+.donate-value { font-size: 40px; font-weight: 700; letter-spacing: -0.01em; overflow-wrap: break-word; line-height: 1.15; }
+.donate-hint { font-size: 22px; color: var(--muted); }
+.donate-methods.no-qr .donate-method { padding: 40px 24px; }
+.donate-methods.no-qr .donate-value { font-size: 42px; }
+.donate-foot { margin-top: 38px; font-size: 32px; color: var(--muted); }
+.donate-foot b { color: var(--ink); font-weight: 700; }

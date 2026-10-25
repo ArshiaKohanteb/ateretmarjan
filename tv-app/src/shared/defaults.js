@@ -27,6 +27,7 @@ export const DEFAULT_SETTINGS = {
   itemsBetween: 2,
   pairVerticalFlyers: true,
   showCommunity: true,
+  showDonateSlide: true,
   communitySeconds: 16,
   communityTitle: "Our Community",
   holdBeforeMinyan: 10,
@@ -42,7 +43,7 @@ export const DEFAULT_SETTINGS = {
   showDonate: true,
   tickerSpeed: 60,
   donate: {
-    venmo: "@Ateret-Marjan",
+    venmo: "@ateretmarjan",
     zelle: "donateateretmarjan@gmail.com",
     website: "AteretMarjan.org",
   },

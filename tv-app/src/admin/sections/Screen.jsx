@@ -121,6 +121,7 @@ function Rotation({ s, set }) {
           <Toggle label="Flyers" checked={s.showFlyers !== false} onChange={(v) => set({ showFlyers: v })} />
           <Toggle label="Slides (announcements, Mazal Tov, sponsors)" checked={s.showSlides !== false} onChange={(v) => set({ showSlides: v })} />
           <Toggle label="Community collage" checked={s.showCommunity !== false} onChange={(v) => set({ showCommunity: v })} />
+          <Toggle label="Donation slide" checked={s.showDonateSlide !== false} onChange={(v) => set({ showDonateSlide: v })} />
           <Toggle label="Pair vertical flyers side by side" checked={s.pairVerticalFlyers} onChange={(v) => set({ pairVerticalFlyers: v })} />
         </div>
       </Card>

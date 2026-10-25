@@ -26,6 +26,9 @@ export const DEFAULT_SETTINGS = {
   announcementSeconds: 12,
   itemsBetween: 2,
   pairVerticalFlyers: true,
+  showCommunity: true,
+  communitySeconds: 16,
+  communityTitle: "Our Community",
   holdBeforeMinyan: 10,
   contentPaused: false,
   // Schedule screen
@@ -109,6 +112,7 @@ export const DEFAULT_TV = {
   special: [],
   announcements: DEFAULT_ANNOUNCEMENTS,
   flyers: [],
+  photos: [],
 };
 
 // Firebase drops empty arrays and turns arrays into objects in some cases.
@@ -123,5 +127,6 @@ export function normalizeTv(raw) {
     special: asList(r.special).map((s) => ({ ...s, items: asList(s.items) })),
     announcements: raw ? asList(r.announcements) : DEFAULT_ANNOUNCEMENTS,
     flyers: asList(r.flyers),
+    photos: asList(r.photos),
   };
 }

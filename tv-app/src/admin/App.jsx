@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Home as HomeIcon, Clock, Megaphone, Images, Palette, Users, LogOut } from "lucide-react";
+import { Home as HomeIcon, Clock, Megaphone, Images, Palette, Users, LogOut, Camera } from "lucide-react";
 import { subscribeTv, seedTv, isDemo } from "../shared/store.js";
 import { watchUser, signIn, signOutUser, resetPassword, claimOwner } from "./services.js";
 import { Button, Field } from "./ui.jsx";
@@ -7,6 +7,7 @@ import Home from "./sections/Home.jsx";
 import Schedule from "./sections/Schedule.jsx";
 import Announcements from "./sections/Announcements.jsx";
 import Flyers from "./sections/Flyers.jsx";
+import Photos from "./sections/Photos.jsx";
 import Display from "./sections/Display.jsx";
 import Managers from "./sections/Managers.jsx";
 
@@ -15,6 +16,7 @@ const NAV = [
   { id: "schedule", label: "Times", icon: Clock },
   { id: "announcements", label: "Announcements", short: "News", icon: Megaphone },
   { id: "flyers", label: "Flyers", icon: Images },
+  { id: "photos", label: "Community", short: "Photos", icon: Camera },
   { id: "display", label: "Display", icon: Palette },
   { id: "managers", label: "People", icon: Users, owner: true },
 ];
@@ -150,6 +152,7 @@ export default function App() {
         {current.id === "schedule" && <Schedule {...props} />}
         {current.id === "announcements" && <Announcements {...props} />}
         {current.id === "flyers" && <Flyers {...props} />}
+        {current.id === "photos" && <Photos {...props} />}
         {current.id === "display" && <Display {...props} />}
         {current.id === "managers" && <Managers {...props} />}
       </main>

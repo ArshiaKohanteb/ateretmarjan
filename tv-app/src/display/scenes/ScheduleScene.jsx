@@ -3,6 +3,8 @@ import { Brand, Clock, Time, countdownText, Ornament } from "./common.jsx";
 import { minutesUntil } from "../../shared/schedule.js";
 import { addDays, isLive } from "./util.js";
 
+const dayName = (epoch, tz) => new Intl.DateTimeFormat("en-US", { timeZone: tz, weekday: "long" }).format(epoch);
+
 // Pick a type scale for the timetable from how many rows it must hold.
 function density(groups) {
   const rows = groups.reduce((n, g) => n + g.items.length, 0) + groups.length * 1.2;
@@ -165,7 +167,8 @@ function Bulletin({ tv, z, today }) {
 
 export default function ScheduleScene({ tv, z, sched, now, tz }) {
   const s = tv.settings;
-  const special = z?.specialDays?.length ? z.specialDays.join(" · ") : "";
+  const pill = z?.parasha ? `פרשת ${z.parasha}` : sched.holidayToday?.he || (sched.period?.isYomTov ? sched.period.titleHe : "");
+  const greeting = sched.greeting;
   const hasBulletin = s.showTicker || s.showDonate || s.showLimudim || s.showMakam;
 
   return (
@@ -181,10 +184,10 @@ export default function ScheduleScene({ tv, z, sched, now, tz }) {
           <div className="now-date">{z?.hebrewDate?.civil || ""}</div>
           {z?.hebrewDate?.hebrew && <div className="now-hebdate" dir="rtl">{z.hebrewDate.hebrew}</div>}
           <Ornament />
-          {(z?.parasha || special) && (
+          {(pill || greeting) && (
             <div className="now-week">
-              {z?.parasha && <span className="parasha" dir="rtl">פרשת {z.parasha}</span>}
-              {special && <span className="special-day">{special}</span>}
+              {pill && <span className="parasha" dir="rtl">{pill}</span>}
+              {greeting && <span className="greeting">{greeting.en}</span>}
             </div>
           )}
         </div>
@@ -201,11 +204,19 @@ export default function ScheduleScene({ tv, z, sched, now, tz }) {
             </div>
             <div className="now-next-bar"><span style={{ transform: `scaleX(${Math.max(0.04, Math.min(1, 1 - minutesUntil(sched.next.epoch, now) / 120))})` }} /></div>
           </div>
+        ) : sched.inPeriod && z?.havdalah ? (
+          <div className="now-next">
+            <div className="now-next-top">
+              <span className="now-next-label">{sched.period.greeting}</span>
+              <span className="now-next-when">{countdownText(z.havdalah, now)}</span>
+            </div>
+            <div className="now-next-row"><span className="now-next-name">{sched.period.endLabel}</span><Time epoch={z.havdalah} tz={tz} /></div>
+          </div>
         ) : (
-          z?.candleLighting && (
+          z?.candleLighting && sched.period && (
             <div className="now-next">
-              <div className="now-next-top"><span className="now-next-label">Candle lighting</span></div>
-              <div className="now-next-row"><span className="now-next-name">This Friday</span><Time epoch={z.candleLighting} tz={tz} /></div>
+              <div className="now-next-top"><span className="now-next-label">Candle lighting</span><span className="now-next-when">{sched.period.title}</span></div>
+              <div className="now-next-row"><span className="now-next-name">{dayName(z.candleLighting, tz)}</span><Time epoch={z.candleLighting} tz={tz} /></div>
             </div>
           )
         )}

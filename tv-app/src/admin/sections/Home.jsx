@@ -28,7 +28,7 @@ export default function Home({ tv, z, go }) {
         </div>
         <Segmented small value={hold} onChange={setHold} options={[
           { value: "", label: "Rotation" }, { value: "schedule", label: "Schedule" },
-          { value: "flyer", label: "Flyers" }, { value: "announcement", label: "Announcements" },
+          { value: "flyer", label: "Flyers" }, { value: "announcement", label: "Announcements" }, { value: "community", label: "Collage" },
         ]} />
       </Card>
 

@@ -34,18 +34,24 @@ export function buildContent(tv, today, sizes) {
     .filter((a) => a.slide !== false && isLive(a, today) && (a.title || a.body))
     .map((a) => ({ kind: "announcement", item: a, key: a.id }));
 
-  // Interleave so flyers and announcements alternate.
+  // Interleave so flyers and announcements alternate; the community collage
+  // (a fresh random pick each time) sits in the middle of the loop.
   const out = [];
   const n = Math.max(flyerSlides.length, cards.length);
   for (let i = 0; i < n; i++) {
     if (flyerSlides[i]) out.push(flyerSlides[i]);
     if (cards[i]) out.push(cards[i]);
   }
+  const photos = (tv.photos || []).filter((p) => p.url && p.active !== false);
+  if (s.showCommunity !== false && photos.length >= 3) {
+    out.splice(Math.ceil(out.length / 2), 0, { kind: "community", key: "community" });
+  }
   return out;
 }
 
 export function slideSeconds(slide, settings) {
   if (slide.kind === "schedule") return settings.scheduleSeconds || 30;
+  if (slide.kind === "community") return settings.communitySeconds || 16;
   if (slide.kind === "announcement") return slide.item.seconds || settings.announcementSeconds || 12;
   const custom = Math.max(...slide.items.map((f) => f.seconds || 0));
   return custom || settings.flyerSeconds || 12;

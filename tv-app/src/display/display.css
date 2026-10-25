@@ -363,3 +363,32 @@ body { background: #050F28; cursor: none; -webkit-font-smoothing: antialiased; }
 .sp-labels .zman-label { font-size: 19px; }
 .sp-labels .zman .t { font-size: 36px; }
 .fx-lite .sp-glow { animation: none; }
+.greeting { font-family: "Cormorant Garamond", serif; font-style: italic; font-size: 40px; font-weight: 600; background: linear-gradient(180deg, var(--acc-1), var(--acc-2)); -webkit-background-clip: text; background-clip: text; color: transparent; padding-right: .1em; }
+
+/* ── Community collage ── */
+.scene-community { padding: 36px 44px 150px; }
+.collage { position: absolute; inset: 36px 44px 148px; display: grid; grid-template-columns: repeat(12, 1fr); grid-template-rows: repeat(6, 1fr); gap: 18px; }
+.tile {
+  position: relative; overflow: hidden; border-radius: 28px; margin: 0;
+  box-shadow: 0 30px 70px -24px rgba(0,0,0,.6), inset 0 0 0 1.5px rgba(255,255,255,.14);
+  animation: tile-in 1.1s cubic-bezier(.2,.75,.2,1) both;
+}
+.tile::after { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.16); pointer-events: none; }
+.tile img { width: 100%; height: 100%; object-fit: cover; display: block; animation-duration: var(--secs); animation-timing-function: linear; animation-fill-mode: both; will-change: transform; }
+@keyframes tile-in { from { opacity: 0; transform: translateY(40px) scale(.96); clip-path: inset(18% 0 0 0 round 28px); } to { opacity: 1; transform: none; clip-path: inset(0 0 0 0 round 28px); } }
+.drift-1 { animation-name: drift-zoom-in; transform-origin: 30% 40%; }
+.drift-2 { animation-name: drift-zoom-out; transform-origin: 70% 30%; }
+.drift-3 { animation-name: drift-pan-l; }
+.drift-4 { animation-name: drift-pan-r; }
+@keyframes drift-zoom-in { from { transform: scale(1.02); } to { transform: scale(1.16); } }
+@keyframes drift-zoom-out { from { transform: scale(1.16); } to { transform: scale(1.03); } }
+@keyframes drift-pan-l { from { transform: scale(1.14) translateX(3%); } to { transform: scale(1.14) translateX(-3%); } }
+@keyframes drift-pan-r { from { transform: scale(1.14) translateX(-3%); } to { transform: scale(1.14) translateX(3%); } }
+.community-label {
+  position: absolute; left: 44px; right: 44px; bottom: 36px; height: 92px;
+  display: flex; align-items: center; justify-content: space-between; padding: 0 40px; border-radius: 999px;
+}
+.community-title { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.community-title span { font-family: "Cormorant Garamond", serif; font-size: 52px; font-weight: 600; line-height: 1; background: linear-gradient(180deg, var(--acc-1), var(--acc-2)); -webkit-background-clip: text; background-clip: text; color: transparent; padding-bottom: .05em; }
+.community-title .ornament { width: 360px; }
+.fx-lite .tile img { animation: none; }

@@ -5,6 +5,7 @@ import { buildSchedule, minutesUntil, localInfo, TIMEZONE } from "../shared/sche
 import { THEMES, resolveTheme } from "../shared/themes.js";
 import ScheduleScene from "./scenes/ScheduleScene.jsx";
 import { FlyerScene, AnnouncementScene } from "./scenes/ContentScenes.jsx";
+import CommunityScene from "./scenes/CommunityScene.jsx";
 
 const params = new URLSearchParams(location.search);
 const HOLD = params.get("hold"); // schedule | flyer | announcement (dashboard preview)
@@ -42,7 +43,7 @@ export default function App() {
       const s = tv.settings;
       const holdForMinyan = s.holdBeforeMinyan > 0 && sched?.next && minutesUntil(sched.next.epoch) <= s.holdBeforeMinyan;
       let pool = content;
-      if (HOLD === "flyer" || HOLD === "announcement") pool = content.filter((c) => c.kind === HOLD);
+      if (HOLD === "flyer" || HOLD === "announcement" || HOLD === "community") pool = content.filter((c) => c.kind === HOLD);
       const contentAllowed = HOLD !== "schedule" && pool.length > 0 && (HOLD || (!s.contentPaused && !holdForMinyan));
 
       let next = SCHEDULE;
@@ -56,6 +57,8 @@ export default function App() {
         }
       }
       if (next.kind === "schedule") sinceSchedule.current = 0;
+      // A new key each time, so every collage is a fresh random pick.
+      if (next.kind === "community") next = { ...next, key: "community-" + Date.now() };
       if (next.key !== cur.key) setPrev({ slide: cur, n: slides.n });
       setSlides((p) => ({ cur: next, n: next.key !== p.cur.key ? p.n + 1 : p.n, tick: p.tick + 1 }));
     }, ms);
@@ -91,6 +94,7 @@ export default function App() {
     const props = { slide, tv, z, sched, now, tz };
     if (slide.kind === "flyer") return <FlyerScene {...props} />;
     if (slide.kind === "announcement") return <AnnouncementScene {...props} />;
+    if (slide.kind === "community") return <CommunityScene {...props} />;
     return <ScheduleScene {...props} />;
   };
 

@@ -85,13 +85,13 @@ function draw(src, w, h, maxEdge, quality) {
   return new Promise((res) => c.toBlob((blob) => res({ blob, w: cw, h: ch, dataUrl: () => c.toDataURL("image/jpeg", quality) }), "image/jpeg", quality));
 }
 
-export async function uploadFlyer(file, id) {
+export async function uploadFlyer(file, id, folder = "flyers") {
   if (isDemo()) {
     const r = await shrink(file, 1100, 0.72);
     return { url: r.dataUrl(), path: "", w: r.w, h: r.h };
   }
   const r = await shrink(file, 2400, 0.86);
-  const path = `tv/flyers/${id}.jpg`;
+  const path = `tv/${folder}/${id}.jpg`;
   await uploadBytes(sRef(storage, path), r.blob, { contentType: "image/jpeg", cacheControl: "public, max-age=31536000" });
   const url = await getDownloadURL(sRef(storage, path));
   return { url, path, w: r.w, h: r.h };

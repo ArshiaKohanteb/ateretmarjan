@@ -6,3 +6,7 @@ _site
 .jekyll-cache
 Gemfile.lock
 node_modules
+.demo-flyers
+
+# Built by GitHub Actions from tv-app/
+/tv/

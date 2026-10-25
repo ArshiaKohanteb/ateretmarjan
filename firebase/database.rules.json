@@ -1,0 +1,17 @@
+{
+  "rules": {
+    "tv": {
+      ".read": true,
+      ".write": "auth != null && root.child('tvAdmins').child(auth.uid).exists()"
+    },
+    "tvAdmins": {
+      ".read": "auth != null && root.child('tvAdmins').child(auth.uid).exists()",
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && ((!root.child('tvAdmins').exists() && auth.uid === $uid && newData.child('role').val() === 'owner') || root.child('tvAdmins').child(auth.uid).child('role').val() === 'owner')"
+      }
+    },
+    "signage": { ".read": true, ".write": true },
+    "editor": { ".read": true, ".write": true }
+  }
+}

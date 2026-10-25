@@ -15,3 +15,13 @@ defaults:
       type: pages
     values:
       layout: "default"
+
+# The TV app source is built into /tv by the GitHub Action; don't publish the source.
+exclude:
+  - tv-app
+  - firebase
+  - SETUP.md
+  - node_modules
+  - vendor
+  - Gemfile
+  - Gemfile.lock

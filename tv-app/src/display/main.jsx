@@ -1,0 +1,12 @@
+import React from "react";
+import { createRoot } from "react-dom/client";
+import App from "./App.jsx";
+import "./display.css";
+
+// The zmanim engine is plain ES modules served by the site, not bundled.
+const s = document.createElement("script");
+s.type = "module";
+s.src = "/assets/js/tv/zmanim-bridge.js";
+document.head.appendChild(s);
+
+createRoot(document.getElementById("root")).render(<App />);

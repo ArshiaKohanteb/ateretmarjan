@@ -21,6 +21,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: tv-app/package-lock.json
+
+      - name: Build TV display + dashboard
+        working-directory: tv-app
+        run: npm ci && npm run build
+
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:

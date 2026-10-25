@@ -48,7 +48,7 @@ function Login() {
       const c = err.code || "";
       setMsg(c.includes("invalid-credential") || c.includes("wrong-password") || c.includes("user-not-found") ? "Email or password is incorrect."
         : c.includes("too-many-requests") ? "Too many tries. Wait a minute and try again."
-        : c.includes("operation-not-allowed") ? "Email sign-in isn't turned on in Firebase yet (see the setup guide)."
+        : c.includes("operation-not-allowed") || c.includes("configuration-not-found") ? "Email sign-in isn't turned on in Firebase yet (see the setup guide)."
         : c.includes("email-already-in-use") ? "That email already has an account. Sign in instead."
         : err.message);
     }

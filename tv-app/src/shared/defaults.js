@@ -43,7 +43,7 @@ export const DEFAULT_SETTINGS = {
   showDonate: true,
   tickerSpeed: 60,
   donate: {
-    venmo: "@ateretmarjan",
+    venmo: "@Ateret-Marjan",
     zelle: "donateateretmarjan@gmail.com",
     website: "AteretMarjan.org",
   },

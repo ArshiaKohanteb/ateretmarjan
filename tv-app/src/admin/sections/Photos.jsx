@@ -51,7 +51,7 @@ export default function Photos({ tv }) {
         >
           {busy ? <Loader2 className="spin" size={32} /> : <ImagePlus size={32} />}
           <b>{busy || "Add photos"}</b>
-          <span>Pick as many as you like from your phone: kiddush, events, the kids, simchas. At least 3 are needed for the collage.</span>
+          <span>Pick as many as you like from your phone: kiddush, events, the kids, simchas. JPG, PNG and iPhone HEIC all work. At least 3 are needed for the collage.</span>
           <input ref={input} type="file" accept={IMAGE_ACCEPT} multiple hidden onChange={(e) => { upload(e.target.files); e.target.value = ""; }} />
         </div>
         {error && <p className="error">{error}</p>}

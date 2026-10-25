@@ -5,6 +5,7 @@ import { THEMES, THEME_OPTIONS } from "../../shared/themes.js";
 import { patchTv } from "../../shared/store.js";
 import { HEBREW_FONTS, useHebrewFont } from "../../shared/fonts.js";
 import jsQR from "jsqr";
+import { decodeImage, IMAGE_ACCEPT } from "../services.js";
 import { QrCode, Trash2 } from "lucide-react";
 
 function Swatch({ id }) {
@@ -172,12 +173,13 @@ function HebrewFonts({ value, onChange }) {
 // Read the QR code out of a photo of the printed Zelle sheet. The TV then draws
 // a sharp copy of the same code instead of showing the photo.
 async function readQr(file) {
-  const bmp = await createImageBitmap(file);
+  const bmp = await decodeImage(file);
   for (const max of [1600, 1000, 2400]) {
-    const k = Math.min(1, max / Math.max(bmp.width, bmp.height));
+    const k = Math.min(1, max / Math.max(bmp.naturalWidth || bmp.width, bmp.naturalHeight || bmp.height));
     const c = document.createElement("canvas");
-    c.width = Math.round(bmp.width * k);
-    c.height = Math.round(bmp.height * k);
+    const bw = bmp.naturalWidth || bmp.width, bh = bmp.naturalHeight || bmp.height;
+    c.width = Math.round(bw * k);
+    c.height = Math.round(bh * k);
     const ctx = c.getContext("2d");
     ctx.drawImage(bmp, 0, 0, c.width, c.height);
     const img = ctx.getImageData(0, 0, c.width, c.height);
@@ -207,7 +209,7 @@ function ZelleQr({ value, onChange }) {
       <div className="row-actions">
         <button type="button" className="btn btn-secondary" onClick={() => input.current.click()}><QrCode size={17} /><span>{value ? "Replace QR code" : "Upload QR code"}</span></button>
         {value && <button type="button" className="btn btn-ghost-danger" onClick={() => { onChange(""); setMsg(""); }}><Trash2 size={16} /><span>Remove</span></button>}
-        <input ref={input} type="file" accept="image/*" hidden onChange={(e) => { pick(e.target.files[0]); e.target.value = ""; }} />
+        <input ref={input} type="file" accept={IMAGE_ACCEPT} hidden onChange={(e) => { pick(e.target.files[0]); e.target.value = ""; }} />
       </div>
       {value && !msg && <span className="hint">A Zelle QR code is saved.</span>}
       {msg && <span className="hint">{msg}</span>}

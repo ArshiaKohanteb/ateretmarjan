@@ -62,16 +62,35 @@ export const removeManager = (uid) => remove(adminsRef(uid));
 // ── Photos ──
 
 // Shrink big phone photos before upload: faster for the TV and the stick's memory.
-export async function shrink(file, maxEdge, quality) {
-  const bitmap = await createImageBitmap(file).catch(() => null);
-  if (!bitmap) {
-    const url = URL.createObjectURL(file);
-    const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = url; });
-    return draw(img, img.naturalWidth, img.naturalHeight, maxEdge, quality);
+export const isHeic = (f) => /heic|heif/i.test(f.type) || /\.(heic|heif)$/i.test(f.name || "");
+export const isImage = (f) => f.type.startsWith("image/") || isHeic(f);
+export const IMAGE_ACCEPT = "image/*,.heic,.heif";
+
+// Decode any picked photo, converting iPhone HEIC to JPEG when the browser
+// can't read it natively (Chrome on Mac/Windows). The converter only loads when needed.
+export async function decodeImage(file) {
+  const tryBitmap = async (f) => { try { return await createImageBitmap(f); } catch { return null; } };
+  let bmp = await tryBitmap(file);
+  if (!bmp && isHeic(file)) {
+    const { default: heic2any } = await import("heic2any");
+    const out = await heic2any({ blob: file, toType: "image/jpeg", quality: 0.92 });
+    bmp = await tryBitmap(Array.isArray(out) ? out[0] : out);
   }
-  return draw(bitmap, bitmap.width, bitmap.height, maxEdge, quality);
+  if (!bmp) {
+    const url = URL.createObjectURL(file);
+    try {
+      bmp = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = url; });
+    } catch {
+      throw new Error("This photo format can't be read. Try a JPG or PNG.");
+    }
+  }
+  return bmp;
 }
 
+export async function shrink(file, maxEdge, quality) {
+  const img = await decodeImage(file);
+  return draw(img, img.naturalWidth || img.width, img.naturalHeight || img.height, maxEdge, quality);
+}
 function draw(src, w, h, maxEdge, quality) {
   const k = Math.min(1, maxEdge / Math.max(w, h));
   const cw = Math.round(w * k), ch = Math.round(h * k);

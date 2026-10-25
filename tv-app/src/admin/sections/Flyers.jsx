@@ -3,7 +3,7 @@ import { ImagePlus, Trash2, ChevronLeft, ChevronRight, Settings2, Loader2 } from
 import { Card, Button, Field, Toggle, Stepper, Modal } from "../ui.jsx";
 import { uid } from "../../shared/defaults.js";
 import { writeTv, patchTv } from "../../shared/store.js";
-import { uploadFlyer, deleteFlyerFile } from "../services.js";
+import { uploadFlyer, deleteFlyerFile, isImage, IMAGE_ACCEPT } from "../services.js";
 import { status } from "./Announcements.jsx";
 
 const shape = (f) => (f.w && f.h ? (f.w / f.h >= 1.25 ? "Horizontal" : "Vertical") : "");
@@ -45,7 +45,7 @@ export default function Flyers({ tv }) {
   const save = (next) => writeTv("flyers", JSON.parse(JSON.stringify(next.map((f, i) => ({ ...f, order: i })))));
 
   async function upload(files) {
-    const imgs = [...files].filter((f) => f.type.startsWith("image/"));
+    const imgs = [...files].filter(isImage);
     if (!imgs.length) return;
     setError("");
     const added = [];
@@ -86,8 +86,8 @@ export default function Flyers({ tv }) {
         >
           {busy ? <Loader2 className="spin" size={32} /> : <ImagePlus size={32} />}
           <b>{busy || "Add flyers"}</b>
-          <span>Tap to choose from your phone or drag images here. JPG, PNG, HEIC from your camera roll all work.</span>
-          <input ref={input} type="file" accept="image/*" multiple hidden onChange={(e) => { upload(e.target.files); e.target.value = ""; }} />
+          <span>Tap to choose from your phone or drag images here. JPG, PNG and iPhone HEIC photos all work.</span>
+          <input ref={input} type="file" accept={IMAGE_ACCEPT} multiple hidden onChange={(e) => { upload(e.target.files); e.target.value = ""; }} />
         </div>
         {error && <p className="error">{error}</p>}
       </Card>

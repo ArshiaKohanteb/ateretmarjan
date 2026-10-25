@@ -3,7 +3,7 @@ import { ImagePlus, Trash2, Loader2, Shuffle } from "lucide-react";
 import { Card, Field, Toggle, Stepper, useDraft } from "../ui.jsx";
 import { uid } from "../../shared/defaults.js";
 import { writeTv, patchTv } from "../../shared/store.js";
-import { uploadFlyer, deleteFlyerFile } from "../services.js";
+import { uploadFlyer, deleteFlyerFile, isImage, IMAGE_ACCEPT } from "../services.js";
 
 export default function Photos({ tv }) {
   const list = tv.photos || [];
@@ -19,7 +19,7 @@ export default function Photos({ tv }) {
   const save = (next) => writeTv("photos", JSON.parse(JSON.stringify(next)));
 
   async function upload(files) {
-    const imgs = [...files].filter((f) => f.type.startsWith("image/"));
+    const imgs = [...files].filter(isImage);
     if (!imgs.length) return;
     setError("");
     const added = [];
@@ -52,7 +52,7 @@ export default function Photos({ tv }) {
           {busy ? <Loader2 className="spin" size={32} /> : <ImagePlus size={32} />}
           <b>{busy || "Add photos"}</b>
           <span>Pick as many as you like from your phone: kiddush, events, the kids, simchas. At least 3 are needed for the collage.</span>
-          <input ref={input} type="file" accept="image/*" multiple hidden onChange={(e) => { upload(e.target.files); e.target.value = ""; }} />
+          <input ref={input} type="file" accept={IMAGE_ACCEPT} multiple hidden onChange={(e) => { upload(e.target.files); e.target.value = ""; }} />
         </div>
         {error && <p className="error">{error}</p>}
       </Card>

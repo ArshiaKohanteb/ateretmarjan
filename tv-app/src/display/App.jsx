@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { useTv, useZmanim, useNow, useStageScale, useImageSizes } from "./hooks.js";
+import { useTv, useZmanim, useNow, useStage, useImageSizes } from "./hooks.js";
 import { buildContent, slideSeconds } from "./rotation.js";
-import { buildSchedule, minutesUntil, localInfo, TIMEZONE } from "../shared/schedule.js";
+import { buildSchedule, minutesUntil, localInfo, setHour24, TIMEZONE } from "../shared/schedule.js";
 import { THEMES, resolveTheme } from "../shared/themes.js";
 import ScheduleScene from "./scenes/ScheduleScene.jsx";
 import { FlyerScene, AnnouncementScene } from "./scenes/ContentScenes.jsx";
@@ -10,19 +10,22 @@ import CommunityScene from "./scenes/CommunityScene.jsx";
 const params = new URLSearchParams(location.search);
 const HOLD = params.get("hold"); // schedule | flyer | announcement (dashboard preview)
 const FORCE_THEME = params.get("theme");
+// /tv/flipped sets window.__TV_FLIP__ for a TV mounted upside down.
+const FLIP = !!window.__TV_FLIP__ || params.has("flip");
 const SCHEDULE = { kind: "schedule", key: "schedule" };
 
 export default function App() {
   const tv = useTv();
   const z = useZmanim();
   const now = useNow(60_000);
-  const scale = useStageScale();
+  const stage = useStage();
   const tz = z?.timezone || TIMEZONE;
 
   const today = localInfo(now, tz).dateKey;
   const urls = useMemo(() => (tv?.flyers || []).map((f) => f.url).filter(Boolean), [tv]);
   const sizes = useImageSizes(urls);
   const content = useMemo(() => (tv ? buildContent(tv, today, sizes) : []), [tv, today, sizes, urls.map((u) => sizes.get(u)?.w).join()]);
+  setHour24(tv?.settings?.clock24);
   const sched = useMemo(() => (tv ? buildSchedule(tv, z, now, tz) : null), [tv, z, now, tz]);
 
   // ── Rotation ──
@@ -44,15 +47,22 @@ export default function App() {
       const holdForMinyan = s.holdBeforeMinyan > 0 && sched?.next && minutesUntil(sched.next.epoch) <= s.holdBeforeMinyan;
       let pool = content;
       if (HOLD === "flyer" || HOLD === "announcement" || HOLD === "community") pool = content.filter((c) => c.kind === HOLD);
-      const contentAllowed = HOLD !== "schedule" && pool.length > 0 && (HOLD || (!s.contentPaused && !holdForMinyan));
+      const shabbatPause = s.pauseOnShabbat && sched?.inPeriod;
+      const contentAllowed = HOLD !== "schedule" && pool.length > 0 && (HOLD || (!s.contentPaused && !holdForMinyan && !shabbatPause));
 
       let next = SCHEDULE;
       if (contentAllowed) {
         const between = Math.max(1, s.itemsBetween || 1);
         const wantContent = HOLD || cur.kind === "schedule" || sinceSchedule.current < between;
         if (wantContent) {
-          next = pool[pointer.current % pool.length];
-          pointer.current = (pointer.current + 1) % pool.length;
+          if (s.slideOrder === "shuffle" && pool.length > 2) {
+            let pickI;
+            do { pickI = Math.floor(Math.random() * pool.length); } while (pool[pickI].key === cur.key);
+            next = pool[pickI];
+          } else {
+            next = pool[pointer.current % pool.length];
+            pointer.current = (pointer.current + 1) % pool.length;
+          }
           sinceSchedule.current = cur.kind === "schedule" ? 1 : sinceSchedule.current + 1;
         }
       }
@@ -77,10 +87,11 @@ export default function App() {
     upcoming?.items?.forEach((f) => { const i = new Image(); i.src = f.url; });
   }, [slides.n, content]);
 
-  // Daily refresh at ~3:30 AM keeps a 24/7 stick healthy.
+  // A daily refresh (3:30 AM unless the owner changes it) keeps a 24/7 stick healthy.
   useEffect(() => {
     const p = localInfo(now, tz);
-    if (p.hour === 3 && p.minute === 30 && performance.now() > 10 * 60_000) location.reload();
+    const [h, m] = String(tv?.settings?.dailyReload || "03:30").split(":").map(Number);
+    if (p.hour === h && p.minute === m && performance.now() > 10 * 60_000) location.reload();
   }, [now]);
 
   if (!tv) return <Splash />;
@@ -88,7 +99,8 @@ export default function App() {
   const sky = skyColor(z?.days?.[today], now);
   const themeId = FORCE_THEME && THEMES[FORCE_THEME] ? FORCE_THEME : resolveTheme(tv.settings, sched || {});
   const theme = THEMES[themeId];
-  const flip = tv.settings.flip && !params.has("preview");
+  const flip = FLIP && !params.has("preview");
+  const dim = nightDim(tv.settings, now, tz);
 
   const render = (slide) => {
     const props = { slide, tv, z, sched, now, tz };
@@ -99,10 +111,10 @@ export default function App() {
   };
 
   return (
-    <div className={`viewport theme-${themeId} ${theme.dark ? "is-dark" : "is-light"} fx-${tv.settings.effects === "lite" ? "lite" : "full"}`} style={{ ...theme.vars, "--sky": sky }}>
+    <div className={`viewport theme-${themeId} ${theme.dark ? "is-dark" : "is-light"} fx-${tv.settings.effects === "lite" ? "lite" : "full"} tr-${tv.settings.transition || "fade"} ${stage.w / stage.h < 1.6 ? "is-narrow" : ""}`} style={{ ...theme.vars, "--sky": sky }}>
       <div
         className="stage"
-        style={{ transform: `translate(-50%, -50%) scale(${scale})${flip ? " rotate(180deg)" : ""}` }}
+        style={{ width: stage.w, height: stage.h, transform: `translate(-50%, -50%) scale(${stage.scale})${flip ? " rotate(180deg)" : ""}` }}
       >
         <div className="ambient" aria-hidden="true">
           <div className="amb-photo" />
@@ -118,6 +130,7 @@ export default function App() {
           <div className="layer layer-out" key={"out" + prev.n}>{render(prev.slide)}</div>
         )}
         <div className="layer layer-in" key={"in" + slides.n}>{render(slides.cur)}</div>
+        {dim > 0 && <div className="night-dim" style={{ opacity: dim }} />}
       </div>
     </div>
   );
@@ -133,6 +146,19 @@ function skyColor(d, now) {
   if (now >= d.sunset + 15 * M && now < (d.tzet || d.sunset) + 30 * M) return "rgba(150, 90, 200, .20)";
   if (now >= d.sunrise && now < d.sunset) return "rgba(120, 190, 255, .14)";
   return "rgba(20, 40, 120, .25)";
+}
+
+// Dim the screen overnight so it isn't a floodlight in an empty room.
+function nightDim(s, now, tz) {
+  const n = s.nightDim;
+  if (!n?.enabled || !n.start || !n.end) return 0;
+  const p = localInfo(now, tz);
+  const mins = p.hour * 60 + p.minute;
+  const [sh, sm] = n.start.split(":").map(Number);
+  const [eh, em] = n.end.split(":").map(Number);
+  const a = sh * 60 + sm, b = eh * 60 + em;
+  const inside = a < b ? mins >= a && mins < b : mins >= a || mins < b;
+  return inside ? Math.min(0.85, Math.max(0, 1 - (Number(n.level) || 40) / 100)) : 0;
 }
 
 function Splash() {

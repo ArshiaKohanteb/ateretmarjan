@@ -17,6 +17,7 @@ export default defineConfig({
       input: {
         display: resolve(__dirname, "tv/index.html"),
         admin: resolve(__dirname, "tv/admin/index.html"),
+        flipped: resolve(__dirname, "tv/flipped/index.html"),
       },
     },
   },

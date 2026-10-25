@@ -1,24 +1,29 @@
 import React, { useEffect, useState } from "react";
-import { Home as HomeIcon, Clock, Megaphone, Images, Palette, Users, LogOut, Camera } from "lucide-react";
+import { LayoutDashboard, Clock, Megaphone, Images, MonitorSmartphone, Settings as SettingsIcon, LogOut } from "lucide-react";
 import { subscribeTv, seedTv, isDemo } from "../shared/store.js";
 import { watchUser, signIn, signOutUser, resetPassword, claimOwner } from "./services.js";
 import { Button, Field } from "./ui.jsx";
 import Home from "./sections/Home.jsx";
 import Schedule from "./sections/Schedule.jsx";
 import Announcements from "./sections/Announcements.jsx";
-import Flyers from "./sections/Flyers.jsx";
-import Photos from "./sections/Photos.jsx";
-import Display from "./sections/Display.jsx";
-import Managers from "./sections/Managers.jsx";
+import Media from "./sections/Media.jsx";
+import Screen from "./sections/Screen.jsx";
+import Settings from "./sections/Settings.jsx";
+import LivePreview from "./sections/LivePreview.jsx";
 
 const NAV = [
-  { id: "home", label: "Home", icon: HomeIcon },
-  { id: "schedule", label: "Times", icon: Clock },
-  { id: "announcements", label: "Announcements", short: "News", icon: Megaphone },
-  { id: "flyers", label: "Flyers", icon: Images },
-  { id: "photos", label: "Community", short: "Photos", icon: Camera },
-  { id: "display", label: "Display", icon: Palette },
-  { id: "managers", label: "People", icon: Users, owner: true },
+  { group: "Content", items: [
+    { id: "home", label: "Overview", icon: LayoutDashboard, blurb: "What's on the screen right now" },
+    { id: "schedule", label: "Times", icon: Clock, blurb: "Minyanim, Shabbat and holiday schedules" },
+    { id: "announcements", label: "Slides", icon: Megaphone, blurb: "Announcements, Mazal Tov and sponsors" },
+    { id: "media", label: "Media", icon: Images, blurb: "Flyers and community photos" },
+  ] },
+  { group: "Screen", items: [
+    { id: "screen", label: "Appearance", short: "Look", icon: MonitorSmartphone, blurb: "Theme, layout, rotation and clock" },
+  ] },
+  { group: "Owner", owner: true, items: [
+    { id: "settings", label: "Settings", icon: SettingsIcon, blurb: "Location, screens, people and backups", tag: "Owner" },
+  ] },
 ];
 
 function useZmanim() {
@@ -62,7 +67,7 @@ function Login() {
       <form className="login-card" onSubmit={submit}>
         <div className="login-brand">
           <div className="crown-mark" />
-          <h1>Ateret Marjan TV</h1>
+          <h1>Ateret Marjan<br />TV Studio</h1>
           <p>{mode === "setup" ? "First-time setup: create the owner account" : mode === "reset" ? "Reset your password" : "Sign in to manage the display"}</p>
         </div>
         {mode === "setup" && <Field label="Your name"><input className="input" value={name} onChange={(e) => setName(e.target.value)} /></Field>}
@@ -114,7 +119,7 @@ export default function App() {
       <div className="login">
         <div className="login-card">
           <div className="login-brand"><div className="crown-mark" /><h1>No access yet</h1>
-            <p>{user.email} isn't on the list of TV managers. Ask the owner to add you under People.</p></div>
+            <p>{user.email} isn't on the list of TV managers. Ask the owner to add you in Settings → People.</p></div>
           <Button onClick={signOutUser} icon={LogOut}>Sign out</Button>
         </div>
       </div>
@@ -122,43 +127,58 @@ export default function App() {
   }
   if (!tv) return <div className="loading"><div className="crown-mark pulse" /></div>;
 
-  const nav = NAV.filter((n) => !n.owner || user.role === "owner");
-  const current = nav.find((n) => n.id === page) || nav[0];
-  const props = { tv, z, user, go: setPage };
+  const isOwner = user.role === "owner";
+  const groups = NAV.filter((g) => !g.owner || isOwner);
+  const items = groups.flatMap((g) => g.items);
+  const current = items.find((n) => n.id === page) || items[0];
+  const props = { tv, z, user, isOwner, go: setPage };
+  const name = user.name || user.email || "";
 
   return (
-    <div className="shell">
+    <div className="shell has-rail">
       <aside className="sidebar">
-        <div className="side-brand"><div className="crown-mark" /><div><b>Ateret Marjan</b><span>TV Dashboard</span></div></div>
-        <nav>
-          {nav.map((n) => (
-            <button key={n.id} className={current.id === n.id ? "on" : ""} onClick={() => setPage(n.id)}>
-              <n.icon size={20} /><span>{n.label}</span>
-            </button>
-          ))}
-        </nav>
+        <div className="side-brand"><div className="crown-mark" /><div><b>Ateret Marjan</b><span>TV Studio</span></div></div>
+        {groups.map((g) => (
+          <nav className="nav-group" key={g.group}>
+            <span className="nav-label">{g.group}</span>
+            {g.items.map((n) => (
+              <button key={n.id} className={current.id === n.id ? "on" : ""} onClick={() => setPage(n.id)}>
+                <n.icon size={19} /><span>{n.label}</span>{n.tag && <span className="nav-tag">{n.tag}</span>}
+              </button>
+            ))}
+          </nav>
+        ))}
         <div className="side-foot">
-          <span>{user.email}</span>
-          {!user.demo && <button className="link" onClick={signOutUser}>Sign out</button>}
+          <div className="avatar">{(name[0] || "?").toUpperCase()}</div>
+          <div className="who"><b>{name}</b><span>{user.role}</span></div>
+          {!user.demo && <button className="icon-btn" onClick={signOutUser} aria-label="Sign out" title="Sign out"><LogOut size={18} /></button>}
         </div>
       </aside>
 
       <main className="main">
-        <header className="topbar">
-          <h1>{current.label}</h1>
-          <span className="autosave">{isDemo() ? "Preview mode · changes stay on this device" : "Changes save automatically"}</span>
-        </header>
-        {current.id === "home" && <Home {...props} />}
-        {current.id === "schedule" && <Schedule {...props} />}
-        {current.id === "announcements" && <Announcements {...props} />}
-        {current.id === "flyers" && <Flyers {...props} />}
-        {current.id === "photos" && <Photos {...props} />}
-        {current.id === "display" && <Display {...props} />}
-        {current.id === "managers" && <Managers {...props} />}
+        <div className="main-inner">
+          <header className="topbar">
+            <div>
+              <h1>{current.label}</h1>
+              <p>{current.blurb}</p>
+            </div>
+            <div className="topbar-actions">
+              <span className={`live-pill ${isDemo() ? "demo" : ""}`}><span className="live-dot" />{isDemo() ? "Preview mode" : "Saves instantly"}</span>
+            </div>
+          </header>
+          {current.id === "home" && <Home {...props} />}
+          {current.id === "schedule" && <Schedule {...props} />}
+          {current.id === "announcements" && <Announcements {...props} />}
+          {current.id === "media" && <Media {...props} />}
+          {current.id === "screen" && <Screen {...props} />}
+          {current.id === "settings" && <Settings {...props} />}
+        </div>
       </main>
 
+      <aside className="rail"><LivePreview tv={tv} /></aside>
+
       <nav className="tabbar">
-        {nav.map((n) => (
+        {items.map((n) => (
           <button key={n.id} className={current.id === n.id ? "on" : ""} onClick={() => setPage(n.id)}>
             <n.icon size={22} /><span>{n.short || n.label}</span>
           </button>

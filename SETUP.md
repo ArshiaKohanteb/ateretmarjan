@@ -1,6 +1,7 @@
 # Ateret Marjan TV: setup & handoff
 
 - **TV display:** https://ateretmarjan.org/tv/
+- **Upside-down TV:** https://ateretmarjan.org/tv/flipped/
 - **Dashboard (for the manager):** https://ateretmarjan.org/tv/admin/
 - **Try the dashboard without signing in:** https://ateretmarjan.org/tv/admin/?demo. Changes there stay on your own device and never reach the TV.
 
@@ -24,7 +25,7 @@ Open https://console.firebase.google.com and choose the **ateret-marjan-elegant-
 6. **Add the show manager.** In the dashboard, go to **People → Add a person**. Enter their email and a starting password, and pick **Manager**.
    They can change everything except the list of people. To change their password, they use **Forgot password?**.
 7. **Point the TV at the new display.** In AbleSign, set the web address to `https://ateretmarjan.org/tv/`.
-   If the TV is mounted upside down, turn on **Flip screen upside down** on the dashboard's Home page.
+   If the TV is mounted upside down, use `https://ateretmarjan.org/tv/flipped/` instead.
 
 ## What the manager can do
 

@@ -94,10 +94,16 @@ export function formatHHMM(v) {
   return `${((h + 11) % 12) + 1}:${String(m).padStart(2, "0")} ${h < 12 ? "AM" : "PM"}`;
 }
 
+let HOUR24 = false;
+export const setHour24 = (v) => { HOUR24 = !!v; };
+
 // { time: "6:30", ampm: "PM" }
 export function formatEpoch(epoch, tz = TIMEZONE, withSeconds = false) {
   if (epoch == null) return { time: "—", ampm: "" };
   const p = localInfo(epoch, tz);
+  if (HOUR24) {
+    return { time: `${String(p.hour).padStart(2, "0")}:${String(p.minute).padStart(2, "0")}${withSeconds ? ":" + String(p.second).padStart(2, "0") : ""}`, ampm: "" };
+  }
   const h = ((p.hour + 11) % 12) + 1;
   const time = `${h}:${String(p.minute).padStart(2, "0")}${withSeconds ? ":" + String(p.second).padStart(2, "0") : ""}`;
   return { time, ampm: p.hour < 12 ? "AM" : "PM" };

@@ -115,7 +115,7 @@ function Confetti() {
   useEffect(() => {
     const canvas = ref.current;
     const ctx = canvas.getContext("2d");
-    const W = (canvas.width = 1920), H = (canvas.height = 1080);
+    const W = (canvas.width = canvas.clientWidth || 1920), H = (canvas.height = canvas.clientHeight || 1080);
     const colors = getComputedStyle(canvas).getPropertyValue("--confetti").split(",").map((c) => c.trim()).filter(Boolean);
     const rand = (a, b) => a + Math.random() * (b - a);
     // kind: "left" / "right" corner cannons, "center" pop, or "rain" from the top

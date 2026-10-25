@@ -1,66 +1,94 @@
-import React, { useState } from "react";
-import { RotateCw, FlipVertical2, PauseCircle, Copy, ExternalLink } from "lucide-react";
-import { Card, Button, Toggle, Segmented } from "../ui.jsx";
-import { patchTv, isDemo } from "../../shared/store.js";
-import { buildSchedule, fmt, minutesUntil } from "../../shared/schedule.js";
+import React from "react";
+import { Clock, Megaphone, Images, Camera, PauseCircle, Copy, ExternalLink } from "lucide-react";
+import { Card, Toggle } from "../ui.jsx";
+import { patchTv } from "../../shared/store.js";
+import { buildSchedule, fmt, minutesUntil, localInfo } from "../../shared/schedule.js";
 import { status } from "./Announcements.jsx";
+import LivePreview from "./LivePreview.jsx";
 
-const TV_URL = "https://ateretmarjan.org/tv/";
+const SCREENS = [
+  { url: "https://ateretmarjan.org/tv/", label: "Normal screen" },
+  { url: "https://ateretmarjan.org/tv/flipped/", label: "Upside-down TV" },
+];
 
-export default function Home({ tv, z, go }) {
-  const [hold, setHold] = useState("");
-  const [copied, setCopied] = useState(false);
-  const s = tv.settings;
-  const sched = buildSchedule(tv, z);
-  const liveFlyers = tv.flyers.filter((f) => status(f).cls === "badge-live").length;
-  const liveAnn = tv.announcements.filter((a) => status(a).cls === "badge-live").length;
-  const src = `/tv/?preview${isDemo() ? "&demo" : ""}${hold ? `&hold=${hold}` : ""}`;
+const inTime = (m) => (m < 60 ? `in ${m} min` : `in ${Math.floor(m / 60)} hr${m % 60 ? ` ${m % 60} min` : ""}`);
+
+function hello(name) {
+  const h = localInfo(Date.now()).hour;
+  const part = h < 12 ? "Boker tov" : h < 17 ? "Good afternoon" : "Erev tov";
+  return name ? `${part}, ${name.split(" ")[0]}` : part;
+}
+
+export function ScreenLinks() {
+  return (
+    <div className="stack-sm">
+      {SCREENS.map((s) => (
+        <div className="url-row" key={s.url}>
+          <div><code>{s.url.replace("https://", "")}</code><span>{s.label}</span></div>
+          <button className="icon-btn" aria-label="Copy" title="Copy" onClick={() => navigator.clipboard?.writeText(s.url)}><Copy size={17} /></button>
+          <a className="icon-btn" href={s.url} target="_blank" rel="noreferrer" aria-label="Open" title="Open"><ExternalLink size={17} /></a>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export default function Home({ tv, z, user, go }) {
+  const now = Date.now();
+  const sched = buildSchedule(tv, z, now);
+  const live = (list) => list.filter((x) => status(x).cls === "badge-live").length;
+  const today = sched.groups.flatMap((g) => g.items.map((m) => ({ ...m, group: g.title }))).sort((a, b) => a.epoch - b.epoch);
+  const photos = (tv.photos || []).filter((p) => p.active !== false).length;
 
   return (
     <div className="stack">
-      <Card
-        title="Live preview"
-        subtitle="Exactly what the TV is showing. Changes appear within seconds."
-        action={<a className="btn btn-ghost" href={src} target="_blank" rel="noreferrer"><ExternalLink size={18} /><span>Open</span></a>}
-      >
-        <div className="preview">
-          <iframe key={src} src={src} title="TV preview" />
+      <section className="hero-card">
+        <div>
+          <div className="hero-hello">{hello(user.name)}</div>
+          <div className="hero-date">{z?.hebrewDate?.civil}</div>
+          {z?.hebrewDate?.hebrew && <div className="hero-heb" dir="rtl">{z.hebrewDate.hebrew}{z.parasha ? ` · פרשת ${z.parasha}` : ""}</div>}
         </div>
-        <Segmented small value={hold} onChange={setHold} options={[
-          { value: "", label: "Rotation" }, { value: "schedule", label: "Schedule" },
-          { value: "flyer", label: "Flyers" }, { value: "announcement", label: "Announcements" }, { value: "community", label: "Collage" },
-        ]} />
-      </Card>
+        <div className="hero-next">
+          <span>{sched.next ? `Next · ${inTime(minutesUntil(sched.next.epoch))}` : "Nothing else today"}</span>
+          <b>{sched.next ? sched.next.name : sched.period?.title || "—"}</b>
+          {sched.next && <em>{fmt(sched.next.epoch)}</em>}
+          {sched.greeting && <small>{sched.greeting.en}</small>}
+        </div>
+      </section>
 
       <div className="stat-row">
-        <button className="stat" onClick={() => go("schedule")}>
-          <span className="stat-label">Next</span>
-          <b>{sched.next ? sched.next.name : "—"}</b>
-          <span>{sched.next ? `${fmt(sched.next.epoch)} · in ${minutesUntil(sched.next.epoch)} min` : "Nothing else today"}</span>
-        </button>
-        <button className="stat" onClick={() => go("flyers")}>
-          <span className="stat-label">Flyers</span>
-          <b>{liveFlyers}</b>
-          <span>showing now</span>
-        </button>
-        <button className="stat" onClick={() => go("announcements")}>
-          <span className="stat-label">Announcements</span>
-          <b>{liveAnn}</b>
-          <span>showing now</span>
-        </button>
+        <button className="stat" onClick={() => go("schedule")}><span className="stat-label"><Clock size={14} />Times today</span><b>{today.length}</b><span>on the board</span></button>
+        <button className="stat" onClick={() => go("announcements")}><span className="stat-label"><Megaphone size={14} />Slides</span><b>{live(tv.announcements)}</b><span>showing now</span></button>
+        <button className="stat" onClick={() => go("media")}><span className="stat-label"><Images size={14} />Flyers</span><b>{live(tv.flyers)}</b><span>showing now</span></button>
+        <button className="stat" onClick={() => go("media")}><span className="stat-label"><Camera size={14} />Photos</span><b>{photos}</b><span>in the collage</span></button>
       </div>
 
-      <Card title="TV controls">
-        <Toggle label="Schedule only" hint="Pause flyers and announcements, e.g. for a busy Yom Tov" checked={s.contentPaused} onChange={(v) => patchTv("settings", { contentPaused: v })} />
-        <Toggle label="Flip screen upside down" hint="For a TV mounted upside down. The preview above stays right side up." checked={s.flip} onChange={(v) => patchTv("settings", { flip: v })} />
-        <div className="row-actions">
-          <Button icon={RotateCw} onClick={() => confirm("Restart every TV showing this display?") && patchTv("settings", { reloadToken: Date.now() })}>Restart TV</Button>
-          <Button icon={copied ? null : Copy} onClick={() => { navigator.clipboard?.writeText(TV_URL); setCopied(true); setTimeout(() => setCopied(false), 1500); }}>
-            {copied ? "Copied!" : "Copy TV address"}
-          </Button>
+      <div className="grid-2">
+        <Card title="On the board" subtitle="What the TV is showing for today and what's coming up." icon={Clock}>
+          {today.length ? (
+            <ul className="today-list">
+              {today.map((m) => (
+                <li key={m.id + m.epoch} className={sched.next && m.epoch === sched.next.epoch && m.id === sched.next.id ? "next" : m.epoch < now ? "past" : ""}>
+                  <span>{m.name}{m.note ? ` · ${m.note}` : ""}</span><b>{fmt(m.epoch)}</b>
+                </li>
+              ))}
+            </ul>
+          ) : <p className="empty-state">No times today. Add them under Times.</p>}
+        </Card>
+        <div className="stack">
+          <Card title="Quick controls" icon={PauseCircle} className="hide-wide">
+            <div className="toggle-list">
+              <Toggle label="Times only" hint="Pause flyers, slides and the collage" checked={tv.settings.contentPaused} onChange={(v) => patchTv("settings", { contentPaused: v })} />
+              <Toggle label="Pause slides on Shabbat" checked={tv.settings.pauseOnShabbat} onChange={(v) => patchTv("settings", { pauseOnShabbat: v })} />
+            </div>
+          </Card>
+          <Card title="Screen addresses" subtitle="Put one of these in AbleSign." icon={ExternalLink}>
+            <ScreenLinks />
+          </Card>
         </div>
-        <p className="hint">Point AbleSign (or any browser) at <b>{TV_URL}</b></p>
-      </Card>
+      </div>
+
+      <div className="mobile-preview"><LivePreview tv={tv} inline /></div>
     </div>
   );
 }

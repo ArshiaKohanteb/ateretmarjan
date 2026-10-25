@@ -3,14 +3,17 @@ import { X, Minus, Plus } from "lucide-react";
 import { DAY_LABELS } from "../shared/defaults.js";
 import { ZMAN_CHOICES, describeTime, resolveTime, fmt, localInfo } from "../shared/schedule.js";
 
-export function Card({ title, subtitle, action, children, className = "" }) {
+export function Card({ title, subtitle, action, icon: Icon, children, className = "" }) {
   return (
     <section className={`card ${className}`}>
       {(title || action) && (
         <header className="card-head">
-          <div>
-            {title && <h3>{title}</h3>}
-            {subtitle && <p className="sub">{subtitle}</p>}
+          <div className="card-title">
+            {Icon && <span className="card-icon"><Icon size={19} strokeWidth={2.2} /></span>}
+            <div>
+              {title && <h3>{title}</h3>}
+              {subtitle && <p className="sub">{subtitle}</p>}
+            </div>
           </div>
           {action}
         </header>
@@ -175,3 +178,15 @@ export function useDraft(remote, save, delay = 600) {
 export const clean = (v) => JSON.parse(JSON.stringify(v ?? null));
 
 export const todayKey = () => localInfo(Date.now()).dateKey;
+
+export function Tabs({ value, onChange, options }) {
+  return (
+    <div className="tabs" role="tablist">
+      {options.filter(Boolean).map((o) => (
+        <button key={o.value} role="tab" aria-selected={value === o.value} className={value === o.value ? "on" : ""} onClick={() => onChange(o.value)}>
+          {o.icon && <o.icon size={16} />}{o.label}
+        </button>
+      ))}
+    </div>
+  );
+}

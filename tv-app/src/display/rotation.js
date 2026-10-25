@@ -9,7 +9,7 @@ const shapeOf = (f, sizes) => {
 // Ordered list of content slides (flyers + announcement cards).
 export function buildContent(tv, today, sizes) {
   const s = tv.settings;
-  const flyers = (tv.flyers || [])
+  const flyers = (s.showFlyers === false ? [] : tv.flyers || [])
     .filter((f) => f.url && isLive(f, today) && !sizes.get(f.url)?.error)
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
@@ -30,7 +30,7 @@ export function buildContent(tv, today, sizes) {
   }
   if (waiting) flyerSlides.push({ kind: "flyer", layout: "tall", items: [waiting], key: waiting.id });
 
-  const cards = (tv.announcements || [])
+  const cards = (s.showSlides === false ? [] : tv.announcements || [])
     .filter((a) => a.slide !== false && isLive(a, today) && (a.title || a.body))
     .map((a) => ({ kind: "announcement", item: a, key: a.id }));
 

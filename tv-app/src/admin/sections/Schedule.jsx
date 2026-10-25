@@ -1,10 +1,9 @@
 import React, { useState } from "react";
-import { Plus, Trash2, ChevronUp, ChevronDown, CalendarDays } from "lucide-react";
-import { Card, Button, Field, Toggle, Segmented, DaysPicker, TimeEditor, useDraft, todayKey } from "../ui.jsx";
+import { Plus, Trash2, ChevronUp, ChevronDown, CalendarDays, Clock } from "lucide-react";
+import { Card, Button, Field, Toggle, Segmented, Tabs, DaysPicker, TimeEditor, useDraft, todayKey } from "../ui.jsx";
 import { uid, WEEKDAYS } from "../../shared/defaults.js";
 import { writeTv, patchTv } from "../../shared/store.js";
-import { addDays, localInfo } from "../../shared/schedule.js";
-import FlyerImport from "./FlyerImport.jsx";
+import { addDays, localInfo, resolveTime, formatHHMM, fmt } from "../../shared/schedule.js";
 
 const move = (list, i, d) => {
   const j = i + d;
@@ -20,39 +19,69 @@ function nextDateFor(weekday) {
   return addDays(t, (weekday - wd + 7) % 7);
 }
 
-function ItemRow({ item, onChange, onDelete, onUp, onDown, mode, z }) {
+const ZMAN_SHORT = { sunrise: "Sunrise", hatzot: "Chatzot", minchaGedola: "Mincha Gedola", plag: "Plag", sunset: "Sunset", tzet: "Tzet", alot: "Alot", misheyakir: "Misheyakir", candleLighting: "Candles", havdalah: "Havdalah", rabbeinuTam: "R. Tam" };
+
+function timeLabel(spec, preview) {
+  if (!spec) return null;
+  if (spec.type === "fixed") return spec.value ? formatHHMM(spec.value) : null;
+  const off = Number(spec.offset) || 0;
+  const rel = `${off ? (off < 0 ? "−" : "+") + Math.abs(off) + " " : ""}${ZMAN_SHORT[spec.zman] || spec.zman}`;
+  return preview ? `${fmt(preview)} · ${rel}` : rel;
+}
+
+function ItemRow({ item, onChange, onDelete, onUp, onDown, mode, z, open, onToggle }) {
   const set = (patch) => onChange({ ...item, ...patch });
   const previewDate = mode === "shabbat" ? nextDateFor(item.day === "fri" ? 5 : 6)
     : mode === "daily" ? nextDateFor((item.days || [])[0] ?? 0) : todayKey();
+  const preview = z ? resolveTime(item.time, previewDate, z) : null;
+  const label = timeLabel(item.time, preview);
+  const sub = mode === "daily" ? daysSummary(item.days) : mode === "shabbat" ? (item.day === "fri" ? "Friday" : "Shabbat") : "";
   return (
-    <div className="item-row">
-      <div className="item-main">
-        <div className="item-top">
-          <input className="input input-name" placeholder="Name (e.g. Mincha)" value={item.name || ""} onChange={(e) => set({ name: e.target.value })} />
-          {mode === "daily" && (
-            <input className="input input-note" placeholder="Note (optional)" value={item.note || ""} onChange={(e) => set({ note: e.target.value })} />
-          )}
-          {mode === "shabbat" && (
-            <Segmented small value={item.day || "sat"} onChange={(day) => set({ day })} options={[{ value: "fri", label: "Friday" }, { value: "sat", label: "Shabbat" }]} />
-          )}
+    <div className={`time-row ${open ? "open" : ""}`}>
+      <div className="time-row-main">
+        <div className="order">
+          <button onClick={onUp} aria-label="Move up"><ChevronUp size={16} /></button>
+          <button onClick={onDown} aria-label="Move down"><ChevronDown size={16} /></button>
         </div>
-        {mode === "daily" && <DaysPicker value={item.days || []} onChange={(days) => set({ days })} />}
-        <TimeEditor value={item.time} onChange={(time) => set({ time })} allowShabbat={mode !== "daily"} z={z} dateKey={previewDate} />
-      </div>
-      <div className="item-actions">
-        <button className="icon-btn" onClick={onUp} aria-label="Move up"><ChevronUp size={18} /></button>
-        <button className="icon-btn" onClick={onDown} aria-label="Move down"><ChevronDown size={18} /></button>
+        <input className="input input-name" placeholder="Name (e.g. Mincha)" value={item.name || ""} onChange={(e) => set({ name: e.target.value })} />
+        {mode === "daily" ? (
+          <input className="input input-note" placeholder="Note (optional)" value={item.note || ""} onChange={(e) => set({ note: e.target.value })} />
+        ) : <span className="input-note sub">{sub}</span>}
+        <button className={`time-chip ${label ? "" : "empty"}`} onClick={onToggle} title="Change time">
+          {label || "Set time"}{mode === "daily" && sub && <small>{sub}</small>}
+        </button>
         <button className="icon-btn danger" onClick={onDelete} aria-label="Delete"><Trash2 size={18} /></button>
       </div>
+      {open && (
+        <div className="time-row-detail">
+          {mode === "daily" && <DaysPicker value={item.days || []} onChange={(days) => set({ days })} />}
+          {mode === "shabbat" && (
+            <Segmented small value={item.day || "sat"} onChange={(day) => set({ day })} options={[{ value: "fri", label: "Friday / Erev" }, { value: "sat", label: "Shabbat / Yom Tov day" }]} />
+          )}
+          <TimeEditor value={item.time} onChange={(time) => set({ time })} allowShabbat={mode !== "daily"} z={z} dateKey={previewDate} />
+          {mode === "daily" && <input className="input note-mobile" placeholder="Note shown beside the name (optional)" value={item.note || ""} onChange={(e) => set({ note: e.target.value })} />}
+        </div>
+      )}
     </div>
   );
 }
 
+const DAY_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+function daysSummary(days = []) {
+  const d = [...days].sort();
+  if (d.length === 7) return "Every day";
+  if (d.join() === "0,1,2,3,4") return "Sun–Thu";
+  if (d.join() === "1,2,3,4,5") return "Mon–Fri";
+  if (d.join() === "0,1,2,3,4,5") return "Sun–Fri";
+  return d.map((x) => DAY_SHORT[x]).join(", ") || "No days";
+}
+
 function ItemList({ items, setItems, mode, z, newItem, addLabel }) {
+  const [open, setOpen] = useState(null);
   return (
     <>
-      <div className="item-list">
-        {items.length === 0 && <p className="empty-state">Nothing here yet.</p>}
+      {items.length === 0 && <p className="empty-state">Nothing here yet.</p>}
+      <div className="times">
         {items.map((it, i) => (
           <ItemRow
             key={it.id}
@@ -63,10 +92,15 @@ function ItemList({ items, setItems, mode, z, newItem, addLabel }) {
             onDelete={() => confirm(`Remove "${it.name || "this time"}"?`) && setItems(items.filter((x) => x.id !== it.id))}
             onUp={() => setItems(move(items, i, -1))}
             onDown={() => setItems(move(items, i, 1))}
+            open={open === it.id}
+            onToggle={() => setOpen(open === it.id ? null : it.id)}
           />
         ))}
       </div>
-      <Button icon={Plus} onClick={() => setItems([...items, newItem()])}>{addLabel}</Button>
+      <div className="times-foot">
+        <Button variant="primary" icon={Plus} onClick={() => { const n = newItem(); setItems([...items, n]); setOpen(n.id); }}>{addLabel}</Button>
+        <span className="hint">Tap a time to change it. Saves as you type.</span>
+      </div>
     </>
   );
 }
@@ -74,7 +108,7 @@ function ItemList({ items, setItems, mode, z, newItem, addLabel }) {
 function Weekday({ tv, z }) {
   const [items, setItems] = useDraft(tv.minyanim, (v) => writeTv("minyanim", v));
   return (
-    <Card title="Weekday minyanim" subtitle="Pick the days for each time. The TV shows today's list and highlights what's next.">
+    <Card title="Weekday minyanim" subtitle="Each time can run on any days, at a set time or relative to a zman. On Yom Tov these are hidden automatically." icon={Clock}>
       <ItemList items={items} setItems={setItems} mode="daily" z={z} addLabel="Add a minyan"
         newItem={() => ({ id: uid(), name: "", note: "", days: [...WEEKDAYS], time: { type: "fixed", value: "" } })} />
     </Card>
@@ -85,16 +119,11 @@ function Shabbat({ tv, z }) {
   const [items, setItems] = useDraft(tv.shabbat, (v) => writeTv("shabbat", v));
   return (
     <>
-      <Card title="Shabbat schedule" subtitle="Candle lighting and Havdalah fill in automatically each week.">
+      <Card title="Shabbat & Yom Tov schedule" subtitle="Used every Shabbat, and on Yom Tov unless you set up a special day. Candle lighting and havdalah fill in automatically." icon={Clock}>
         <ItemList items={items} setItems={setItems} mode="shabbat" z={z} addLabel="Add to Shabbat"
           newItem={() => ({ id: uid(), name: "", day: "sat", time: { type: "fixed", value: "" } })} />
       </Card>
-      <Card title="When to show it">
-        <Field label="Start showing the Shabbat schedule on">
-          <Segmented value={Number(tv.settings.shabbatShowFrom ?? 4)} onChange={(v) => patchTv("settings", { shabbatShowFrom: v })}
-            options={[{ value: 3, label: "Wednesday" }, { value: 4, label: "Thursday" }, { value: 5, label: "Friday" }, { value: 0, label: "All week" }]} />
-        </Field>
-      </Card>
+
     </>
   );
 }
@@ -149,8 +178,7 @@ export default function Schedule({ tv, z }) {
   const [tab, setTab] = useState("weekday");
   return (
     <div className="stack">
-      <FlyerImport tv={tv} />
-      <Segmented value={tab} onChange={setTab} options={[{ value: "weekday", label: "Weekday" }, { value: "shabbat", label: "Shabbat" }, { value: "special", label: "Holidays" }]} />
+      <Tabs value={tab} onChange={setTab} options={[{ value: "weekday", label: "Weekday minyanim" }, { value: "shabbat", label: "Shabbat & Yom Tov" }, { value: "special", label: "Special days" }]} />
       {tab === "weekday" && <Weekday tv={tv} z={z} />}
       {tab === "shabbat" && <Shabbat tv={tv} z={z} />}
       {tab === "special" && <Special tv={tv} z={z} />}

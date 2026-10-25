@@ -1,32 +1,40 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Brand, Clock, Time, countdownText, Ornament } from "./common.jsx";
 import { minutesUntil } from "../../shared/schedule.js";
 import { addDays, isLive } from "./util.js";
 
 const dayName = (epoch, tz) => new Intl.DateTimeFormat("en-US", { timeZone: tz, weekday: "long" }).format(epoch);
 
-// Pick a type scale for the timetable from how many rows it must hold.
-function density(groups) {
-  const rows = groups.reduce((n, g) => n + g.items.length, 0) + groups.length * 1.2;
-  if (rows <= 7) return "d-xl";
-  if (rows <= 10) return "d-l";
-  if (rows <= 14) return "d-m";
-  return "d-s";
-}
+// Type scales from largest to smallest. The timetable starts at the largest and
+// steps down (then splits into two columns) until every row fits its box.
+const LEVELS = ["d-xl", "d-l", "d-m", "d-l two-col", "d-m two-col", "d-s two-col", "d-xs two-col", "d-xxs two-col"];
 
 function Timetable({ groups, now, next, tz }) {
+  const ref = useRef(null);
+  const sig = groups.map((g) => g.key + ":" + g.items.length).join("|");
+  const [level, setLevel] = useState(0);
+  useEffect(() => setLevel(0), [sig]);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const box = el.parentElement;
+    const cs = getComputedStyle(box);
+    const room = box.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+    // Rows bleed 28px past each side for the highlight, so allow that much width.
+    const tooTall = el.scrollHeight > room + 1 || el.scrollWidth > el.clientWidth + 60;
+    if (tooTall && level < LEVELS.length - 1) setLevel(level + 1);
+  });
+
   if (!groups.length) {
     return (
-      <section className="timetable d-xl">
-        <h2 className="group-title">Today</h2>
+      <section className="timetable d-xl" ref={ref}>
+        <h2 className="group-title"><span>Today</span></h2>
         <p className="empty">No minyanim posted</p>
       </section>
     );
   }
-  const d = density(groups);
-  const twoCol = d === "d-s" && groups.length > 1;
   return (
-    <section className={`timetable ${d} ${twoCol ? "two-col" : ""}`}>
+    <section className={`timetable ${LEVELS[level]}`} ref={ref}>
       {groups.map((g, gi) => (
         <div key={g.key} className="group" style={{ "--gi": gi }}>
           <header className="group-head">
@@ -37,7 +45,7 @@ function Timetable({ groups, now, next, tz }) {
             {g.items.map((m, i) => {
               const state = next && m.id === next.id && m.epoch === next.epoch ? "is-next" : m.epoch < now ? "is-past" : "";
               return (
-                <li key={m.id + m.epoch} className={`${state} cascade`} style={{ animationDelay: `${0.25 + gi * 0.25 + i * 0.08}s` }}>
+                <li key={m.id + m.epoch} className={`${state} cascade`} style={{ animationDelay: `${0.25 + gi * 0.25 + i * 0.06}s` }}>
                   <span className="row-name" dir="auto">
                     {m.name}
                     {m.note && <em>{m.note}</em>}
@@ -86,7 +94,7 @@ function SunPath({ z, hidden, now, tz, today }) {
 
   return (
     <section className="zband glass sunpath">
-      <h2 className="zband-title">{afterNightfall ? "Tomorrow" : "Zmanim"}</h2>
+      {afterNightfall && <span className="sp-tomorrow">Tomorrow</span>}
       <div className="sp-body">
         <svg className="sp-svg" viewBox={`0 0 ${SW} ${SH}`} preserveAspectRatio="none" aria-hidden="true">
           <defs>
@@ -167,8 +175,9 @@ function Bulletin({ tv, z, today }) {
 
 export default function ScheduleScene({ tv, z, sched, now, tz }) {
   const s = tv.settings;
-  const pill = z?.parasha ? `פרשת ${z.parasha}` : sched.holidayToday?.he || (sched.period?.isYomTov ? sched.period.titleHe : "");
-  const greeting = sched.greeting;
+  const on = (k) => s[k] !== false;
+  const pill = !on("showParasha") ? "" : z?.parasha ? `פרשת ${z.parasha}` : sched.holidayToday?.he || (sched.period?.isYomTov ? sched.period.titleHe : "");
+  const greeting = on("showGreeting") ? sched.greeting : null;
   const hasBulletin = s.showTicker || s.showDonate || s.showLimudim || s.showMakam;
 
   return (
@@ -176,14 +185,14 @@ export default function ScheduleScene({ tv, z, sched, now, tz }) {
       <aside className="now glass">
         <div className="now-top">
           <Brand tv={tv} />
-          <span className="bsd" dir="rtl">בס״ד</span>
+          {on("showBsd") && <span className="bsd" dir="rtl">בס״ד</span>}
         </div>
 
         <div className="now-main">
           <Clock showSeconds={s.showSeconds} tz={tz} className="clock-hero" />
-          <div className="now-date">{z?.hebrewDate?.civil || ""}</div>
-          {z?.hebrewDate?.hebrew && <div className="now-hebdate" dir="rtl">{z.hebrewDate.hebrew}</div>}
-          <Ornament />
+          {on("showCivilDate") && <div className="now-date">{z?.hebrewDate?.civil || ""}</div>}
+          {on("showHebrewDate") && z?.hebrewDate?.hebrew && <div className="now-hebdate" dir="rtl">{z.hebrewDate.hebrew}</div>}
+          {(pill || greeting) && <Ornament />}
           {(pill || greeting) && (
             <div className="now-week">
               {pill && <span className="parasha" dir="rtl">{pill}</span>}
@@ -192,7 +201,7 @@ export default function ScheduleScene({ tv, z, sched, now, tz }) {
           )}
         </div>
 
-        {sched.next ? (
+        {!on("showNextCard") ? null : sched.next ? (
           <div className="now-next">
             <div className="now-next-top">
               <span className="now-next-label">Next</span>

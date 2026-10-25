@@ -42,16 +42,22 @@ export function useNow(ms = 1000) {
   return now;
 }
 
-// Fit a fixed 1920×1080 stage into whatever screen the stick reports.
-export function useStageScale(w = 1920, h = 1080) {
-  const calc = () => Math.min(window.innerWidth / w, window.innerHeight / h);
-  const [scale, setScale] = useState(calc);
+// Lay the screen out at TV scale: the shorter side maps to 1080 (or 1920) design
+// pixels and the other side stretches, so any screen shape is filled edge to edge.
+export function useStage(w = 1920, h = 1080) {
+  const calc = () => {
+    const W = window.innerWidth, H = window.innerHeight;
+    const scale = Math.min(W / w, H / h);
+    return { scale, w: Math.round(W / scale), h: Math.round(H / scale) };
+  };
+  const [stage, setStage] = useState(calc);
   useEffect(() => {
-    const on = () => setScale(calc());
+    const on = () => setStage(calc());
     window.addEventListener("resize", on);
-    return () => window.removeEventListener("resize", on);
+    window.addEventListener("orientationchange", on);
+    return () => { window.removeEventListener("resize", on); window.removeEventListener("orientationchange", on); };
   }, []);
-  return scale;
+  return stage;
 }
 
 // Remember each image's natural size so flyers can be laid out by shape.

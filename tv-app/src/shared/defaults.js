@@ -45,6 +45,32 @@ export const DEFAULT_SETTINGS = {
     zelle: "donateateretmarjan@gmail.com",
     website: "AteretMarjan.org",
   },
+  // Screen elements
+  clock24: false,
+  showBsd: true,
+  showCivilDate: true,
+  showHebrewDate: true,
+  showParasha: true,
+  showGreeting: true,
+  showNextCard: true,
+  // Rotation extras
+  showFlyers: true,
+  showSlides: true,
+  slideOrder: "inorder",
+  transition: "fade",
+  pauseOnShabbat: false,
+  // Screens
+  nightDim: { enabled: false, start: "23:00", end: "05:00", level: 40 },
+  dailyReload: "03:30",
+  location: {
+    name: "Ateret Marjan",
+    lat: 34.164749,
+    long: -118.525887,
+    elevation: 0,
+    timezone: "America/Los_Angeles",
+    candleLighting: 20,
+    tzeitMinutes: 30,
+  },
   // Hidden zmanim (ids) on the schedule screen
   hiddenZmanim: ["alot", "midnight", "minchaGedola"],
   // Bumped from the dashboard to force every TV to reload
@@ -121,7 +147,13 @@ export const asList = (v) => (Array.isArray(v) ? v.filter(Boolean) : v && typeof
 export function normalizeTv(raw) {
   const r = raw || {};
   return {
-    settings: { ...DEFAULT_SETTINGS, ...(r.settings || {}), donate: { ...DEFAULT_SETTINGS.donate, ...(r.settings?.donate || {}) } },
+    settings: {
+      ...DEFAULT_SETTINGS,
+      ...(r.settings || {}),
+      donate: { ...DEFAULT_SETTINGS.donate, ...(r.settings?.donate || {}) },
+      nightDim: { ...DEFAULT_SETTINGS.nightDim, ...(r.settings?.nightDim || {}) },
+      location: { ...DEFAULT_SETTINGS.location, ...(r.settings?.location || {}) },
+    },
     minyanim: raw ? asList(r.minyanim) : DEFAULT_MINYANIM,
     shabbat: raw ? asList(r.shabbat) : DEFAULT_SHABBAT,
     special: asList(r.special).map((s) => ({ ...s, items: asList(s.items) })),

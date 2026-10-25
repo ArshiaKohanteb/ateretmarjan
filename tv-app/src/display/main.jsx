@@ -1,6 +1,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.jsx";
+import { startZmanimEngine } from "../shared/bootstrap.js";
 import "./display.css";
 
 // ?at=2026-10-03T10:00 previews the screen at another moment (tests & dashboard).
@@ -11,10 +12,7 @@ if (at && !isNaN(Date.parse(at))) {
   Date.now = () => realNow() + offset;
 }
 
-// The zmanim engine is plain ES modules served by the site, not bundled.
-const s = document.createElement("script");
-s.type = "module";
-s.src = "/assets/js/tv/zmanim-bridge.js";
-document.head.appendChild(s);
+
+startZmanimEngine();
 
 createRoot(document.getElementById("root")).render(<App />);

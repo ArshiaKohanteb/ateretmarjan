@@ -94,11 +94,19 @@ export default function App() {
   };
 
   return (
-    <div className={`viewport theme-${themeId} ${theme.dark ? "is-dark" : "is-light"}`} style={theme.vars}>
+    <div className={`viewport theme-${themeId} ${theme.dark ? "is-dark" : "is-light"} fx-${tv.settings.effects === "lite" ? "lite" : "full"}`} style={theme.vars}>
       <div
         className="stage"
         style={{ transform: `translate(-50%, -50%) scale(${scale})${flip ? " rotate(180deg)" : ""}` }}
       >
+        <div className="ambient" aria-hidden="true">
+          <div className="amb-photo" />
+          <div className="amb-tint" />
+          <div className="orb orb-a" />
+          <div className="orb orb-b" />
+          <div className="orb orb-c" />
+          <div className="amb-vignette" />
+        </div>
         {prev && (
           <div className="layer layer-out" key={"out" + prev.n}>{render(prev.slide)}</div>
         )}

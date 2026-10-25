@@ -44,3 +44,12 @@ export function countdownText(epoch, now) {
   const r = m % 60;
   return r ? `in ${h} hr ${r} min` : `in ${h} hr`;
 }
+
+// A thin gold rule with a diamond in the middle.
+export function Ornament({ className = "" }) {
+  return (
+    <div className={`ornament ${className}`} aria-hidden="true">
+      <span /><i /><span />
+    </div>
+  );
+}

@@ -142,7 +142,7 @@ export async function readFlyer(file, { today, friday, saturday }) {
   const img = await shrink(file, 1800, 0.88);
   const data = await blobToBase64(img.blob);
   const model = getGenerativeModel(getAI(app, { backend: new GoogleAIBackend() }), {
-    model: "gemini-2.5-flash",
+    model: "gemini-3.8-flash",
     generationConfig: { responseMimeType: "application/json", responseSchema: flyerSchema, temperature: 0 },
   });
   const prompt = `This is a printed schedule of prayer times from a synagogue. Our minyan is "Ateret Marjan" (the youth side).

@@ -270,3 +270,7 @@ select.input { appearance: none; padding-right: 32px; background: #fff url("data
 .import-rows .input-note { flex: 1 1 100px; }
 .import-rows .input-time { flex: 0 0 140px; }
 @media (max-width: 900px) { .import-rows li { flex-wrap: wrap; } .import-rows .input-time { flex: 1 1 120px; } }
+.swatch-glass { position: relative; padding: 10px; justify-content: center; }
+.swatch-glass .sw-photo, .swatch-glass .sw-tint { position: absolute; inset: 0; background-size: cover; background-position: center; }
+.sw-card { position: relative; border: 1px solid; border-radius: 10px; padding: 6px 8px; display: flex; flex-direction: column; gap: 4px; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.swatch-glass .sw-clock { margin-bottom: 0; font-weight: 300; }

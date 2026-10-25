@@ -15,13 +15,12 @@ function Swatch({ id }) {
   }
   const v = THEMES[id].vars;
   return (
-    <div className="swatch swatch-tv">
-      <div style={{ background: v["--field"], color: v["--field-ink"] }}>
+    <div className="swatch swatch-glass" style={{ background: v["--bg"], color: v["--ink"] }}>
+      <div className="sw-photo" style={{ backgroundImage: v["--photo"], opacity: v["--photo-opacity"], filter: v["--photo-filter"] }} />
+      <div className="sw-tint" style={{ background: `radial-gradient(70% 80% at 15% 10%, ${v["--orb-a"]}, transparent), ${v["--tint"]}` }} />
+      <div className="sw-card" style={{ background: `linear-gradient(145deg, ${v["--glass-1"]}, ${v["--glass-2"]})`, borderColor: v["--glass-border"] }}>
         <span className="sw-clock">7:42</span>
-      </div>
-      <div style={{ background: v["--ground"], color: v["--ink"] }}>
-        <span className="sw-row" style={{ background: v["--accent"], color: v["--accent-ink"] }}>Mincha <b>5:45</b></span>
-        <span className="sw-row">Arvit <b>6:20</b></span>
+        <span className="sw-row" style={{ background: `linear-gradient(135deg, ${v["--acc-1"]}, ${v["--acc-2"]})`, color: v["--acc-ink"] }}>Mincha <b>5:45</b></span>
       </div>
     </div>
   );
@@ -55,6 +54,10 @@ export default function Display({ tv }) {
             {Object.entries(THEMES).map(([id, t]) => <option key={id} value={id}>{t.name}</option>)}
           </select>
         </Field>
+      </Card>
+
+      <Card title="Performance">
+        <Toggle label="Lighter effects" hint="Turns off the glass blur and moving light. Use it if the TV looks choppy." checked={s.effects === "lite"} onChange={(v) => set({ effects: v ? "lite" : "full" })} />
       </Card>
 
       <Card title="Rotation" subtitle="The TV shows the schedule, then a few flyers or announcements, then back to the schedule.">

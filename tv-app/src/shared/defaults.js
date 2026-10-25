@@ -18,6 +18,7 @@ export const DEFAULT_SETTINGS = {
   theme: "royal",
   shabbatTheme: "",
   flip: false,
+  effects: "full",
   showSeconds: false,
   // Rotation
   scheduleSeconds: 30,

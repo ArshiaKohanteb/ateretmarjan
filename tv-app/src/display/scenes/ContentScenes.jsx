@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
-import { Brand, Clock, Time, countdownText } from "./common.jsx";
-import { OCCASIONS, DEDICATIONS } from "../../shared/defaults.js";
+import { Brand, Clock, Time, countdownText, Ornament } from "./common.jsx";
+import { OCCASIONS, DEDICATIONS, ANNOUNCEMENT_STYLES } from "../../shared/defaults.js";
 
 function Backdrop({ url }) {
   return (
@@ -14,7 +14,7 @@ function Backdrop({ url }) {
 function SidePanel({ tv, z, sched, now, tz, narrow }) {
   const upcoming = sched.upcoming.slice(narrow ? 0 : 1, narrow ? 2 : 4);
   return (
-    <aside className={`side ${narrow ? "side-narrow" : ""}`}>
+    <aside className={`side glass ${narrow ? "side-narrow" : ""}`}>
       <Brand tv={tv} small />
       <div className="side-main">
         <Clock tz={tz} className="clock-side" />
@@ -98,7 +98,8 @@ export function AnnouncementScene(props) {
   const body = a.body || "";
   return (
     <div className={`scene scene-announce ann-${a.style || "info"}`}>
-      <div className="ann-inner">
+      <div className="ann-inner glass">
+        <div className="ann-label"><Ornament /><span>{ANNOUNCEMENT_STYLES[a.style || "info"]?.label || "Announcement"}</span><Ornament /></div>
         {title && <h1 className={`ann-title ${sizeClass(title, [[24, "t-l"], [48, "t-m"], [999, "t-s"]])}`} dir="auto">{title}</h1>}
         {body && <p className={`ann-body ${sizeClass(body, [[110, "b-l"], [220, "b-m"], [999, "b-s"]])}`} dir="auto">{body}</p>}
       </div>
@@ -196,6 +197,7 @@ function MazalTovScene({ slide, tv, sched, tz }) {
             <span key={i} style={{ animationDelay: `${0.35 + i * 0.07}s` }}>{ch === " " ? " " : ch}</span>
           ))}
         </div>
+        <Ornament className="rise" />
         {line && <p className="mazal-line rise" style={{ animationDelay: "1.05s" }}>{line}</p>}
         {names && <h1 className={`mazal-names rise ${names.length > 34 ? "n-s" : ""}`} style={{ animationDelay: "1.3s" }} dir="auto">{names}</h1>}
         {a.body && <p className="mazal-body rise" style={{ animationDelay: "1.6s" }} dir="auto">{a.body}</p>}
@@ -213,14 +215,14 @@ function SponsorScene({ slide, tv, sched, tz }) {
   const ded = DEDICATIONS[a.dedication || "none"] ?? "";
   return (
     <div className="scene scene-sponsor">
-      <section className="sponsor-meal">
+      <section className="sponsor-meal glass">
         <Brand tv={tv} small />
         <h1 className="rise" style={{ animationDelay: ".15s" }}>
           <span className="sponsor-week">This week’s</span>
           <span className={`sponsor-meal-name ${meal.length > 10 ? "m-s" : ""}`}>{meal}</span>
         </h1>
       </section>
-      <section className="sponsor-who">
+      <section className="sponsor-who glass">
         <p className="sponsor-by rise" style={{ animationDelay: ".45s" }}>is sponsored by</p>
         <p className={`sponsor-name rise ${(a.title || "").length > 30 ? "n-s" : ""}`} style={{ animationDelay: ".6s" }} dir="auto">{a.title}</p>
         {ded && a.body && (

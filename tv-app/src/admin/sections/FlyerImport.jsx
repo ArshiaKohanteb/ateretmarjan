@@ -41,6 +41,8 @@ export default function FlyerImport({ tv }) {
       const msg = String(e.message || e);
       setError(msg.includes("api-not-enabled") || msg.includes("API has not been used") || msg.includes("PERMISSION_DENIED") || msg.includes("not enabled")
         ? "Flyer reading isn't switched on yet. In Firebase, open AI Logic and click Get started (Gemini Developer API)."
+        : msg.includes("prepayment") || msg.includes("RESOURCE_EXHAUSTED") || msg.includes("quota")
+        ? "The flyer reader is out of credit. Add a few dollars of Gemini credit at ai.studio/projects (one flyer costs well under a cent)."
         : `Couldn't read that flyer. ${msg}`);
     }
     setBusy(false);

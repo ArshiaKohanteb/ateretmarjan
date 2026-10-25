@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Brand, Clock, Time, countdownText } from "./common.jsx";
+import { Brand, Clock, Time, countdownText, Ornament } from "./common.jsx";
+import { minutesUntil } from "../../shared/schedule.js";
 import { addDays, isLive } from "./util.js";
 
 // Pick a type scale for the timetable from how many rows it must hold.
@@ -27,7 +28,7 @@ function Timetable({ groups, now, next, tz }) {
       {groups.map((g) => (
         <div key={g.key} className="group">
           <header className="group-head">
-            <h2 className="group-title">{g.title}</h2>
+            <h2 className="group-title"><span>{g.title}</span></h2>
             {g.subtitle && g.subtitle !== g.title && <span className="group-sub" dir="auto">{g.subtitle}</span>}
           </header>
           <ul className="rows">
@@ -51,17 +52,18 @@ function Timetable({ groups, now, next, tz }) {
 }
 
 function ZmanimBand({ z, hidden, now, tz, today }) {
-  if (!z?.days) return <div className="zband" />;
+  if (!z?.days) return <div className="zband glass" />;
   const todays = z.days[today] || {};
   const afterNightfall = todays.tzet && now > todays.tzet;
   const vals = z.days[afterNightfall ? addDays(today, 1) : today] || {};
   const list = (z.zmanimList || []).filter((x) => !hidden.includes(x.id) && vals[x.id]).slice(0, 8);
+  const nextId = afterNightfall ? null : list.find((x) => vals[x.id] > now)?.id;
   return (
-    <section className="zband">
+    <section className="zband glass">
       <h2 className="zband-title">{afterNightfall ? "Tomorrow" : "Zmanim"}</h2>
       <div className="zband-row" style={{ "--n": list.length }}>
         {list.map((x) => (
-          <div key={x.id} className={`zman ${!afterNightfall && vals[x.id] < now ? "is-past" : ""}`}>
+          <div key={x.id} className={`zman ${!afterNightfall && vals[x.id] < now ? "is-past" : ""} ${x.id === nextId ? "is-next" : ""}`}>
             <span className="zman-label">{x.label}</span>
             <Time epoch={vals[x.id]} tz={tz} />
           </div>
@@ -99,7 +101,8 @@ function Bulletin({ tv, z, today }) {
   if (!items.length) return null;
   const text = items[i % items.length];
   return (
-    <footer className="bulletin">
+    <footer className="bulletin glass">
+      <span className="bulletin-mark">✦</span>
       <span key={i} className="bulletin-text" dir="auto">{text}</span>
     </footer>
   );
@@ -112,40 +115,45 @@ export default function ScheduleScene({ tv, z, sched, now, tz }) {
 
   return (
     <div className={`scene scene-schedule ${hasBulletin ? "has-bulletin" : ""}`}>
-      <aside className="now">
+      <aside className="now glass">
         <Brand tv={tv} />
 
         <div className="now-main">
           <Clock showSeconds={s.showSeconds} tz={tz} className="clock-hero" />
           <div className="now-date">{z?.hebrewDate?.civil || ""}</div>
           {z?.hebrewDate?.hebrew && <div className="now-hebdate" dir="rtl">{z.hebrewDate.hebrew}</div>}
+          <Ornament />
           {(z?.parasha || special) && (
             <div className="now-week">
-              {z?.parasha && <span dir="rtl">פרשת {z.parasha}</span>}
-              {special && <span>{special}</span>}
+              {z?.parasha && <span className="parasha" dir="rtl">פרשת {z.parasha}</span>}
+              {special && <span className="special-day">{special}</span>}
             </div>
           )}
         </div>
 
         {sched.next ? (
           <div className="now-next">
-            <div className="now-next-line">
-              <span className="now-next-name" dir="auto">{sched.next.name}</span>
+            <div className="now-next-top">
+              <span className="now-next-label">Next</span>
               <span className="now-next-when">{countdownText(sched.next.epoch, now)}</span>
             </div>
-            <Time epoch={sched.next.epoch} tz={tz} />
+            <div className="now-next-row">
+              <span className="now-next-name" dir="auto">{sched.next.name}</span>
+              <Time epoch={sched.next.epoch} tz={tz} />
+            </div>
+            <div className="now-next-bar"><span style={{ transform: `scaleX(${Math.max(0.04, Math.min(1, 1 - minutesUntil(sched.next.epoch, now) / 120))})` }} /></div>
           </div>
         ) : (
           z?.candleLighting && (
             <div className="now-next">
-              <div className="now-next-line"><span className="now-next-name">Candle lighting</span></div>
-              <Time epoch={z.candleLighting} tz={tz} />
+              <div className="now-next-top"><span className="now-next-label">Candle lighting</span></div>
+              <div className="now-next-row"><span className="now-next-name">This Friday</span><Time epoch={z.candleLighting} tz={tz} /></div>
             </div>
           )
         )}
       </aside>
 
-      <main className="board">
+      <main className="board glass">
         <Timetable groups={sched.groups} now={now} next={sched.next} tz={tz} />
       </main>
 

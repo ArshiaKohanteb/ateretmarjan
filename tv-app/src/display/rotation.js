@@ -9,8 +9,14 @@ const shapeOf = (f, sizes) => {
 // Ordered list of content slides (flyers + announcement cards).
 export function buildContent(tv, today, sizes) {
   const s = tv.settings;
+  const linkable = (a) => !["celebration", "sponsor"].includes(a.style);
+  const cardList = (s.showSlides === false ? [] : tv.announcements || [])
+    .filter((a) => a.slide !== false && isLive(a, today) && (a.title || a.body));
+  const byId = new Map((tv.flyers || []).filter((f) => f.url && !sizes.get(f.url)?.error).map((f) => [f.id, f]));
+  const linked = new Set(cardList.filter((a) => linkable(a) && byId.has(a.flyerId)).map((a) => a.flyerId));
+
   const flyers = (s.showFlyers === false ? [] : tv.flyers || [])
-    .filter((f) => f.url && isLive(f, today) && !sizes.get(f.url)?.error)
+    .filter((f) => f.url && isLive(f, today) && !sizes.get(f.url)?.error && !linked.has(f.id))
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
   const flyerSlides = [];
@@ -30,9 +36,10 @@ export function buildContent(tv, today, sizes) {
   }
   if (waiting) flyerSlides.push({ kind: "flyer", layout: "tall", items: [waiting], key: waiting.id });
 
-  const cards = (s.showSlides === false ? [] : tv.announcements || [])
-    .filter((a) => a.slide !== false && isLive(a, today) && (a.title || a.body))
-    .map((a) => ({ kind: "announcement", item: a, key: a.id }));
+  const cards = cardList.map((a) => {
+    const flyer = linkable(a) ? byId.get(a.flyerId) : null;
+    return flyer ? { kind: "announcement", item: a, flyer, items: [flyer], key: a.id + flyer.id } : { kind: "announcement", item: a, key: a.id };
+  });
 
   // Interleave so flyers and announcements alternate; the community collage
   // (a fresh random pick each time) sits in the middle of the loop.

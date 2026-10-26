@@ -25,6 +25,11 @@
         "$key": {
           ".write": "(auth != null && root.child('tvAdmins').child(auth.uid).exists() && (root.child('tvAdmins').child(auth.uid).child('role').val() === 'owner' || !root.child('tvAdmins').child(auth.uid).child('access').exists() || root.child('tvAdmins').child(auth.uid).child('access').child('screen').val() === true)) || ((auth != null && root.child('tvAdmins').child(auth.uid).exists() && (root.child('tvAdmins').child(auth.uid).child('role').val() === 'owner' || !root.child('tvAdmins').child(auth.uid).child('access').exists() || root.child('tvAdmins').child(auth.uid).child('access').child('media').val() === true)) && $key.matches(/^(communityTitle|showCommunity|communitySeconds|pairVerticalFlyers)$/))"
         }
+      },
+      "edits": {
+        "$key": {
+          ".write": "auth != null && root.child('tvAdmins').child(auth.uid).exists()"
+        }
       }
     },
     "tvAdmins": {

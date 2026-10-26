@@ -22,8 +22,38 @@ export function readCache() {
   return readLocal(CACHE_KEY);
 }
 
+// Who is editing (set by the dashboard) and the last data it saw, so each
+// save can stamp the items it changed with a name and time.
+let editor = "";
+let lastSeen = null;
+export const setEditor = (name) => { editor = name || ""; };
+
+const STAMP = ["editedBy", "editedAt", "order"];
+function sameItem(a, b) {
+  const strip = (o) => JSON.stringify(o, (k, v) => (STAMP.includes(k) ? undefined : v && typeof v === "object" && !Array.isArray(v) ? Object.fromEntries(Object.keys(v).sort().map((x) => [x, v[x]])) : v));
+  return strip(a) === strip(b);
+}
+function stamp(path, value) {
+  const prev = lastSeen?.[path];
+  if (!editor || !Array.isArray(value) || !Array.isArray(prev)) return value;
+  const byId = new Map(prev.map((x) => [x.id, x]));
+  const at = Date.now();
+  return value.map((item) => {
+    const old = byId.get(item?.id);
+    if (!item?.id) return item;
+    if (old && sameItem(old, item)) return old.editedBy ? { ...item, editedBy: old.editedBy, editedAt: old.editedAt } : item;
+    return { ...item, editedBy: editor, editedAt: at };
+  });
+}
+function logEdit(path) {
+  if (!editor) return;
+  const key = path.split("/")[0];
+  writeRaw(`edits/${key}`, { by: editor, at: Date.now() }).catch(() => {});
+}
+
 // cb(tvData, { fromServer, empty })
-export function subscribeTv(cb) {
+export function subscribeTv(listener) {
+  const cb = (data, meta) => { lastSeen = data; listener(data, meta); };
   if (isDemo()) {
     const emit = () => cb(normalizeTv(readLocal(DEMO_KEY) || DEFAULT_TV), { fromServer: true, empty: false });
     emit();
@@ -51,6 +81,12 @@ function setIn(obj, path, value) {
 }
 
 export async function writeTv(path, value) {
+  const out = await writeRaw(path, stamp(path, value));
+  logEdit(path);
+  return out;
+}
+
+async function writeRaw(path, value) {
   if (isDemo()) {
     const current = readLocal(DEMO_KEY) || DEFAULT_TV;
     writeLocal(DEMO_KEY, setIn(current, path, value));
@@ -64,9 +100,11 @@ export async function patchTv(path, partial) {
   if (isDemo()) {
     const current = readLocal(DEMO_KEY) || DEFAULT_TV;
     const base = path.split("/").reduce((o, k) => (o ? o[k] : undefined), current) || {};
-    return writeTv(path, { ...base, ...partial });
+    await writeRaw(path, { ...base, ...partial });
+  } else {
+    await update(tvRef(path), partial);
   }
-  return update(tvRef(path), partial);
+  logEdit(path);
 }
 
 export async function seedTv() {

@@ -1,10 +1,10 @@
 import React, { useRef, useState } from "react";
 import { ImagePlus, Trash2, ChevronLeft, ChevronRight, Settings2, Loader2 } from "lucide-react";
-import { Card, Button, Field, Toggle, Stepper, Modal } from "../ui.jsx";
+import { Card, Button, Field, Toggle, Stepper, Modal, EditedBy } from "../ui.jsx";
 import { uid } from "../../shared/defaults.js";
 import { writeTv, patchTv } from "../../shared/store.js";
 import { uploadFlyer, deleteFlyerFile, isImage, IMAGE_ACCEPT } from "../services.js";
-import { status } from "./Announcements.jsx";
+import { status, canLink } from "./Announcements.jsx";
 
 const shape = (f) => (f.w && f.h ? (f.w / f.h >= 1.25 ? "Horizontal" : "Vertical") : "");
 
@@ -105,6 +105,10 @@ export default function Flyers({ tv }) {
                 <div className="flyer-meta">
                   <span className="flyer-name">{f.name || "Flyer"}</span>
                   <span className={`badge ${st.cls}`}>{st.label}{f.end && st.cls === "badge-live" ? ` · until ${f.end}` : ""}</span>
+                  {(tv.announcements || []).filter((a) => a.flyerId === f.id && canLink(a)).map((a) => (
+                    <span key={a.id} className="flyer-linked">Shows with “{a.title || "announcement"}”</span>
+                  ))}
+                  <EditedBy item={f} prefix={f.addedAt && f.editedAt - f.addedAt < 5000 ? "Added" : "Edited"} />
                 </div>
                 <div className="flyer-actions">
                   <button type="button" role="switch" aria-label="Show on TV" aria-checked={f.active !== false} className={`switch ${f.active !== false ? "on" : ""}`}

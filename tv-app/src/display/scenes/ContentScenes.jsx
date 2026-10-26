@@ -96,6 +96,24 @@ export function AnnouncementScene(props) {
   const { tv, sched, tz } = props;
   const title = a.title || "";
   const body = a.body || "";
+  const flyer = props.slide.flyer;
+  if (flyer) {
+    return (
+      <div className={`scene scene-flyer ann-linked ann-${a.style || "info"}`}>
+        <Backdrop url={flyer.url} />
+        <div className="linked-stage"><img className="flyer-img" decoding="async" src={flyer.url} alt={flyer.name || ""} /></div>
+        <aside className="side glass linked-card">
+          <Brand tv={tv} small />
+          <div className="linked-main">
+            <div className="ann-label"><Ornament /><span>{ANNOUNCEMENT_STYLES[a.style || "info"]?.label || "Announcement"}</span><Ornament /></div>
+            {title && <h1 className={`ann-title ${sizeClass(title, [[22, "lt-l"], [44, "lt-m"], [999, "lt-s"]])}`} dir="auto">{title}</h1>}
+            {body && <p className={`ann-body ${sizeClass(body, [[110, "lb-l"], [220, "lb-m"], [999, "lb-s"]])}`} dir="auto">{body}</p>}
+          </div>
+          <Clock tz={tz} className="clock-foot" />
+        </aside>
+      </div>
+    );
+  }
   return (
     <div className={`scene scene-announce ann-${a.style || "info"}`}>
       <div className="ann-inner glass">

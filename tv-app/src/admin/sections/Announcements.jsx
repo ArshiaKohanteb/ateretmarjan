@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Plus, Pencil, Trash2, Megaphone, PartyPopper, UtensilsCrossed } from "lucide-react";
-import { Card, Button, Field, Toggle, Modal, todayKey } from "../ui.jsx";
+import { Card, Button, Field, Toggle, Modal, todayKey, EditedBy } from "../ui.jsx";
 import { uid, ANNOUNCEMENT_STYLES, OCCASIONS, MEALS, DEDICATIONS } from "../../shared/defaults.js";
 import { writeTv } from "../../shared/store.js";
 
@@ -11,7 +11,23 @@ export function status(item, today = todayKey()) {
   return { label: "On TV", cls: "badge-live" };
 }
 
-function Editor({ initial, onSave, onClose }) {
+// Announcement styles with their own artwork don't take a flyer.
+export const canLink = (a) => !["celebration", "sponsor"].includes(a.style);
+
+function FlyerLink({ flyers, value, onChange }) {
+  return (
+    <div className="link-pick">
+      <button type="button" className={`link-none ${!value ? "on" : ""}`} onClick={() => onChange("")}>No flyer</button>
+      {flyers.map((f) => (
+        <button type="button" key={f.id} className={value === f.id ? "on" : ""} title={f.name || ""} onClick={() => onChange(f.id)}>
+          <img src={f.url} alt={f.name || ""} loading="lazy" />
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function Editor({ initial, flyers = [], onSave, onClose }) {
   const [a, setA] = useState(initial);
   const set = (p) => setA({ ...a, ...p });
   return (
@@ -80,6 +96,11 @@ function Editor({ initial, onSave, onClose }) {
           </Field>
         </>
       )}
+      {canLink(a) && flyers.length > 0 && (
+        <Field label="Show with a flyer (optional)" hint="The flyer appears beside this announcement on one slide, instead of on its own.">
+          <FlyerLink flyers={flyers} value={a.flyerId || ""} onChange={(flyerId) => set({ flyerId })} />
+        </Field>
+      )}
       <div className="grid-2">
         <Field label="Start showing (optional)"><input type="date" className="input" value={a.start} onChange={(e) => set({ start: e.target.value })} /></Field>
         <Field label="Stop after (optional)"><input type="date" className="input" value={a.end} onChange={(e) => set({ end: e.target.value })} /></Field>
@@ -137,6 +158,8 @@ export default function Announcements({ tv }) {
                     <span className={`badge ${st.cls}`}>{st.label}</span>
                     {a.slide !== false && <span className="meta">Slide</span>}
                     {a.ticker !== false && (a.style || "info") === "info" && <span className="meta">Bottom bar</span>}
+                    {canLink(a) && a.flyerId && (tv.flyers || []).some((f) => f.id === a.flyerId) && <span className="meta">With flyer</span>}
+                    <EditedBy item={a} />
                   </div>
                   {a.title && <h4>{a.style === "sponsor" ? `${a.meal || "Kiddush"} · ${a.title}` : a.title}</h4>}
                   {(a.body || a.style === "celebration") && <p>{a.style === "celebration" ? (a.line ?? OCCASIONS[a.occasion]?.line ?? "") + (a.body ? " · " + a.body : "") : a.body}</p>}
@@ -152,7 +175,7 @@ export default function Announcements({ tv }) {
           })}
         </div>
       </Card>
-      {editing && <Editor initial={editing} onSave={upsert} onClose={() => setEditing(null)} />}
+      {editing && <Editor flyers={tv.flyers || []} initial={editing} onSave={upsert} onClose={() => setEditing(null)} />}
     </div>
   );
 }

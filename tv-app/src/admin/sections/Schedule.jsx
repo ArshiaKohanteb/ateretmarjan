@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Plus, Trash2, ChevronUp, ChevronDown, CalendarDays, Clock } from "lucide-react";
-import { Card, Button, Field, Toggle, Segmented, Tabs, DaysPicker, TimeEditor, useDraft, todayKey } from "../ui.jsx";
+import { Card, Button, Field, Toggle, Segmented, Tabs, DaysPicker, TimeEditor, useDraft, todayKey, EditedBy } from "../ui.jsx";
 import { uid, WEEKDAYS } from "../../shared/defaults.js";
 import { writeTv, patchTv } from "../../shared/store.js";
 import { addDays, localInfo, resolveTime, formatHHMM, fmt } from "../../shared/schedule.js";
@@ -52,6 +52,7 @@ function ItemRow({ item, onChange, onDelete, onUp, onDown, mode, z, open, onTogg
         </button>
         <button className="icon-btn danger" onClick={onDelete} aria-label="Delete"><Trash2 size={18} /></button>
       </div>
+      <EditedBy item={item} className="row-edited" />
       {open && (
         <div className="time-row-detail">
           {mode === "daily" && <DaysPicker value={item.days || []} onChange={(days) => set({ days })} />}
@@ -155,6 +156,7 @@ function Special({ tv, z }) {
               </button>
               {open === s.id && (
                 <div className="special-body">
+                  <EditedBy item={s} />
                   <div className="grid-3">
                     <Field label="Name shown on TV"><input className="input" placeholder="e.g. Sukkot Schedule" value={s.title} onChange={(e) => update(s.id, { title: e.target.value })} /></Field>
                     <Field label="First day"><input type="date" className="input" value={s.start} onChange={(e) => update(s.id, { start: e.target.value })} /></Field>

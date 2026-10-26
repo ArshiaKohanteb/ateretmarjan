@@ -169,5 +169,6 @@ export function normalizeTv(raw) {
     announcements: raw ? asList(r.announcements) : DEFAULT_ANNOUNCEMENTS,
     flyers: asList(r.flyers),
     photos: asList(r.photos),
+    edits: r.edits || {},
   };
 }

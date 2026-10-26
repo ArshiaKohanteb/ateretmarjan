@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { X, Minus, Plus } from "lucide-react";
+import { X, Minus, Plus, PenLine } from "lucide-react";
 import { DAY_LABELS } from "../shared/defaults.js";
 import { ZMAN_CHOICES, describeTime, resolveTime, fmt, localInfo } from "../shared/schedule.js";
 
@@ -188,5 +188,30 @@ export function Tabs({ value, onChange, options }) {
         </button>
       ))}
     </div>
+  );
+}
+
+// "5 min ago", "yesterday", "Mar 3"
+export function ago(at) {
+  const m = Math.round((Date.now() - at) / 60000);
+  if (m < 1) return "just now";
+  if (m < 60) return `${m} min ago`;
+  const h = Math.round(m / 60);
+  if (h < 24) return `${h} hr ago`;
+  const d = Math.round(h / 24);
+  if (d === 1) return "yesterday";
+  if (d < 7) return `${d} days ago`;
+  return new Date(at).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
+// Who last changed something. Takes an item ({ editedBy, editedAt }) or a log entry ({ by, at }).
+export function EditedBy({ item, prefix = "Edited", className = "" }) {
+  const by = item?.editedBy || item?.by;
+  const at = item?.editedAt || item?.at;
+  if (!by) return null;
+  return (
+    <span className={`edited-by ${className}`} title={at ? new Date(at).toLocaleString() : ""}>
+      <PenLine size={12} />{prefix} by <b>{by.split(/[ @]/)[0]}</b>{at ? ` · ${ago(at)}` : ""}
+    </span>
   );
 }

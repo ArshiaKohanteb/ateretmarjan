@@ -386,3 +386,23 @@ select.input { appearance: none; padding-right: 34px; background: var(--panel) u
 .access-presets button.on { border-style: solid; border-color: var(--gold, var(--line)); color: var(--ink, inherit); background: var(--gold-soft); }
 form .access-pick { padding-left: 0; }
 @media (max-width: 600px) { .access-pick { padding-left: 0; } }
+
+/* ── Who edited last ── */
+.edited-by { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--muted); font-weight: 500; white-space: nowrap; }
+.edited-by b { font-weight: 700; color: var(--ink); }
+.edited-by svg { opacity: .7; flex: none; }
+.topbar-edited { margin-top: 8px; }
+.row-edited { display: flex; padding: 0 14px 10px 54px; margin-top: -4px; }
+.time-row.open .row-edited { background: var(--panel-2); }
+.photo-edited { position: absolute; top: 6px; left: 6px; max-width: calc(100% - 12px); padding: 3px 8px; border-radius: 999px; background: rgba(8, 18, 40, .62); color: #fff; font-size: 11px; overflow: hidden; text-overflow: ellipsis; }
+.photo-edited b { color: #fff; }
+@media (max-width: 1000px) { .row-edited { padding-left: 14px; } }
+
+/* ── Linking a flyer to an announcement ── */
+.link-pick { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; }
+.link-pick button { aspect-ratio: 3 / 4; border-radius: 12px; border: 2px solid var(--line); background: var(--panel-2); overflow: hidden; padding: 0; }
+.link-pick button img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.link-pick button.on { border-color: var(--gold, var(--navy)); box-shadow: 0 0 0 3px var(--gold-soft); }
+.link-pick .link-none { font-size: 12.5px; font-weight: 700; color: var(--muted); }
+.link-pick .link-none.on { color: var(--ink); }
+.flyer-linked { font-size: 12px; font-weight: 700; color: var(--royal); }

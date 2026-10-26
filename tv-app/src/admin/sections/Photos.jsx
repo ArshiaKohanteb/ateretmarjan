@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 import { ImagePlus, Trash2, Loader2, Shuffle } from "lucide-react";
-import { Card, Field, Toggle, Stepper, useDraft } from "../ui.jsx";
+import { Card, Field, Toggle, Stepper, useDraft, EditedBy } from "../ui.jsx";
 import { uid } from "../../shared/defaults.js";
 import { writeTv, patchTv } from "../../shared/store.js";
 import { uploadFlyer, deleteFlyerFile, isImage, IMAGE_ACCEPT } from "../services.js";
@@ -62,6 +62,7 @@ export default function Photos({ tv }) {
           {list.map((p) => (
             <figure key={p.id} className={`photo ${p.active === false ? "is-off" : ""}`}>
               <img src={p.url} alt="" loading="lazy" />
+              <EditedBy item={p} prefix={p.addedAt && p.editedAt - p.addedAt < 5000 ? "Added" : "Edited"} className="photo-edited" />
               <div className="photo-actions">
                 <button type="button" role="switch" aria-label="Use in collage" aria-checked={p.active !== false} className={`switch ${p.active !== false ? "on" : ""}`}
                   onClick={() => save(list.map((x) => (x.id === p.id ? { ...x, active: x.active === false } : x)))}><span /></button>

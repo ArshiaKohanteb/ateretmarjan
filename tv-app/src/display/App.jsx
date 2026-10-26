@@ -83,7 +83,7 @@ export default function App() {
         setSlides((p) => ({ cur: next, n: next.key !== p.cur.key ? p.n + 1 : p.n, tick: p.tick + 1 }));
       };
       // Decode the next slide's pictures first so the fade-in never stutters.
-      const urls = next.kind === "flyer" ? next.items.map((f) => f.url) : next.kind === "community" ? next.pick.photos.map((p) => p.url) : [];
+      const urls = next.kind === "community" ? next.pick.photos.map((p) => p.url) : (next.items || []).map((f) => f.url);
       if (urls.length) predecode(urls).then(show);
       else show();
     }, ms);

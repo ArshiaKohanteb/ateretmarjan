@@ -402,7 +402,7 @@ body.cursor-idle, body.cursor-idle * { cursor: none !important; }
   display: flex; align-items: center; justify-content: space-between; padding: 0 40px; border-radius: 999px;
 }
 .community-title { display: flex; flex-direction: column; align-items: center; gap: 6px; }
-.community-title span { font-family: "Cormorant Garamond", serif; font-size: 52px; font-weight: 600; line-height: 1; background: linear-gradient(180deg, var(--acc-1), var(--acc-2)); -webkit-background-clip: text; background-clip: text; color: transparent; padding-bottom: .05em; }
+.community-title > span { font-family: "Cormorant Garamond", serif; font-size: 52px; font-weight: 600; line-height: 1; background: linear-gradient(180deg, var(--acc-1), var(--acc-2)); -webkit-background-clip: text; background-clip: text; color: transparent; padding-bottom: .05em; }
 .community-title .ornament { width: 360px; }
 .fx-lite .tile img { animation: none; }
 
@@ -519,7 +519,7 @@ body.cursor-idle, body.cursor-idle * { cursor: none !important; }
 
 /* ═══ Gold that catches the light ═══ */
 .group-title span, .zband-title, .now-next-label, .clock-hero .clock-ampm, .greeting, .mazal-he span,
-.sponsor-meal, .donate-title, .community-title span, .bulletin-mark, .sponsor-meal-name {
+.sponsor-meal, .donate-title, .community-title > span, .bulletin-mark, .sponsor-meal-name {
   background-image: linear-gradient(100deg, var(--acc-2) 0%, var(--acc-1) 38%, #FFF6DC 50%, var(--acc-1) 62%, var(--acc-2) 100%);
   background-size: 260% 100%;
   background-position: 100% 0;
@@ -582,7 +582,7 @@ body.cursor-idle, body.cursor-idle * { cursor: none !important; }
 .fx-lite .glass, .fx-lite .glass::after, .fx-lite .crown, .fx-lite .ornament i, .fx-lite .now-next-bar span::after,
 .fx-lite .donate-method::after, .fx-lite .group-title span, .fx-lite .zband-title, .fx-lite .now-next-label,
 .fx-lite .clock-hero .clock-ampm, .fx-lite .greeting, .fx-lite .sponsor-meal, .fx-lite .donate-title,
-.fx-lite .community-title span, .fx-lite .bulletin-mark { animation: none; }
+.fx-lite .community-title > span, .fx-lite .bulletin-mark { animation: none; }
 .fx-lite .glass::after, .fx-lite .now-next-bar span::after, .fx-lite .donate-method::after { display: none; }
 .fx-lite .mazal-he span { animation: drop .85s cubic-bezier(.2,1.35,.3,1) both; }
 
@@ -606,7 +606,7 @@ body.cursor-idle, body.cursor-idle * { cursor: none !important; }
   84% { border-color: color-mix(in srgb, var(--glass-border) 70%, rgba(255, 255, 255, .4)); }
 }
 .group-title span, .zband-title, .now-next-label, .clock-hero .clock-ampm, .greeting,
-.sponsor-meal, .donate-title, .community-title span, .bulletin-mark {
+.sponsor-meal, .donate-title, .community-title > span, .bulletin-mark {
   background-image: linear-gradient(100deg, var(--acc-2) 0%, var(--acc-1) 40%, #FBEFCB 50%, var(--acc-1) 60%, var(--acc-2) 100%);
   animation-duration: 20s;
 }
@@ -635,3 +635,19 @@ body.cursor-idle, body.cursor-idle * { cursor: none !important; }
 /* Collage tiles rise in with opacity/transform only (no per-frame repaint) */
 @keyframes tile-in { from { opacity: 0; transform: translateY(34px) scale(.97); } to { opacity: 1; transform: none; } }
 .tile img { backface-visibility: hidden; }
+
+/* ── Announcement shown with its flyer ── */
+.ann-linked { display: grid; grid-template-columns: minmax(0, 1fr) 760px; }
+.linked-stage { position: relative; display: grid; place-items: center; padding: 48px 24px 48px 48px; min-width: 0; }
+.linked-stage .flyer-img { max-height: 100%; max-width: 100%; height: auto; width: auto; border-radius: 18px; box-shadow: 0 40px 100px -20px rgba(0,0,0,.7); }
+.linked-card { position: absolute; top: 44px; right: 44px; bottom: 44px; width: 720px; --ink: #fff; --muted: rgba(255,255,255,.72); --glass-1: rgba(255,255,255,.12); --glass-2: rgba(255,255,255,.04); --glass-border: rgba(255,255,255,.22); color: #fff; text-align: center; }
+.linked-main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 0; }
+.linked-card .ann-label { font-size: 21px; gap: 16px; margin-bottom: 26px; max-width: 100%; color: var(--acc-1); }
+.linked-card .ann-title.lt-l { font-size: 96px; }
+.linked-card .ann-title.lt-m { font-size: 76px; }
+.linked-card .ann-title.lt-s { font-size: 60px; }
+.linked-card .ann-body { margin-top: 26px; }
+.linked-card .ann-body.lb-l { font-size: 38px; }
+.linked-card .ann-body.lb-m { font-size: 32px; }
+.linked-card .ann-body.lb-s { font-size: 27px; }
+.linked-card .clock-foot { align-self: center; }

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { LayoutDashboard, Clock, Megaphone, Images, MonitorSmartphone, Settings as SettingsIcon, LogOut } from "lucide-react";
-import { subscribeTv, seedTv, isDemo } from "../shared/store.js";
+import { subscribeTv, seedTv, isDemo, setEditor } from "../shared/store.js";
 import { watchUser, signIn, signOutUser, resetPassword, claimOwner } from "./services.js";
-import { Button, Field } from "./ui.jsx";
+import { Button, Field, EditedBy } from "./ui.jsx";
 import { can } from "./access.js";
 import Home from "./sections/Home.jsx";
 import Schedule from "./sections/Schedule.jsx";
@@ -11,6 +11,12 @@ import Media from "./sections/Media.jsx";
 import Screen from "./sections/Screen.jsx";
 import Settings from "./sections/Settings.jsx";
 import LivePreview from "./sections/LivePreview.jsx";
+
+// Which saved data each page covers, for "last change by …" in its header.
+const PAGE_DATA = { schedule: ["minyanim", "shabbat", "special"], announcements: ["announcements"], media: ["flyers", "photos"], screen: ["settings"], settings: ["settings"] };
+const lastEdit = (tv, page) => Object.entries(tv.edits || {})
+  .filter(([k]) => !PAGE_DATA[page] || PAGE_DATA[page].includes(k))
+  .map(([, v]) => v).sort((a, b) => (b.at || 0) - (a.at || 0))[0];
 
 const NAV = [
   { group: "Content", items: [
@@ -97,6 +103,7 @@ export default function App() {
   const z = useZmanim();
 
   useEffect(() => watchUser(setUser), []);
+  useEffect(() => setEditor(user?.name || user?.email || ""), [user?.name, user?.email]);
   useEffect(() => {
     if (!user?.role) return;
     let seeded = false;
@@ -166,6 +173,7 @@ export default function App() {
             <div>
               <h1>{current.label}</h1>
               <p>{current.blurb}</p>
+              <EditedBy item={lastEdit(tv, current.id)} prefix="Last change" className="topbar-edited" />
             </div>
             <div className="topbar-actions">
               <span className={`live-pill ${isDemo() ? "demo" : ""}`}><span className="live-dot" />{isDemo() ? "Preview mode" : "Saves instantly"}</span>

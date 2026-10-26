@@ -6,7 +6,7 @@ import { THEMES, resolveTheme } from "../shared/themes.js";
 import { useHebrewFont } from "../shared/fonts.js";
 import ScheduleScene from "./scenes/ScheduleScene.jsx";
 import { FlyerScene, AnnouncementScene } from "./scenes/ContentScenes.jsx";
-import CommunityScene from "./scenes/CommunityScene.jsx";
+import CommunityScene, { pickCollage } from "./scenes/CommunityScene.jsx";
 import DonateScene from "./scenes/DonateScene.jsx";
 
 const params = new URLSearchParams(location.search);
@@ -76,11 +76,19 @@ export default function App() {
       }
       if (next.kind === "schedule") sinceSchedule.current = 0;
       // A new key each time, so every collage is a fresh random pick.
-      if (next.kind === "community") next = { ...next, key: "community-" + Date.now() };
-      if (next.key !== cur.key) setPrev({ slide: cur, n: slides.n });
-      setSlides((p) => ({ cur: next, n: next.key !== p.cur.key ? p.n + 1 : p.n, tick: p.tick + 1 }));
+      if (next.kind === "community") next = { ...next, key: "community-" + Date.now(), pick: pickCollage(tv) };
+      const show = () => {
+        if (cancelled) return;
+        if (next.key !== cur.key) setPrev({ slide: cur, n: slides.n });
+        setSlides((p) => ({ cur: next, n: next.key !== p.cur.key ? p.n + 1 : p.n, tick: p.tick + 1 }));
+      };
+      // Decode the next slide's pictures first so the fade-in never stutters.
+      const urls = next.kind === "flyer" ? next.items.map((f) => f.url) : next.kind === "community" ? next.pick.photos.map((p) => p.url) : [];
+      if (urls.length) predecode(urls).then(show);
+      else show();
     }, ms);
-    return () => clearTimeout(t);
+    let cancelled = false;
+    return () => { cancelled = true; clearTimeout(t); };
   }, [slides, !!tv]);
 
   useEffect(() => {
@@ -89,10 +97,10 @@ export default function App() {
     return () => clearTimeout(t);
   }, [prev]);
 
-  // Preload the next flyer so it never pops in half-loaded.
+  // Warm the cache for the flyer after this one.
   useEffect(() => {
     const upcoming = content[pointer.current % (content.length || 1)];
-    upcoming?.items?.forEach((f) => { const i = new Image(); i.src = f.url; });
+    if (upcoming?.items) predecode(upcoming.items.map((f) => f.url));
   }, [slides.n, content]);
 
   // A daily refresh (3:30 AM unless the owner changes it) keeps a 24/7 stick healthy.
@@ -153,6 +161,24 @@ function skyColor(d, now) {
   if (now >= d.sunset + 15 * M && now < (d.tzet || d.sunset) + 30 * M) return "rgba(150, 90, 200, .20)";
   if (now >= d.sunrise && now < d.sunset) return "rgba(120, 190, 255, .14)";
   return "rgba(20, 40, 120, .25)";
+}
+
+// Fully load and decode images (kept in a small cache); gives up after 3s so a
+// slow image can never stall the rotation.
+const decoded = new Map();
+function predecode(urls) {
+  const jobs = urls.map((u) => {
+    if (!decoded.has(u)) {
+      const img = new Image();
+      img.decoding = "async";
+      img.src = u;
+      const job = (img.decode ? img.decode() : new Promise((r) => { img.onload = r; img.onerror = r; })).catch(() => {}).then(() => img);
+      decoded.set(u, job);
+      if (decoded.size > 40) decoded.delete(decoded.keys().next().value);
+    }
+    return decoded.get(u);
+  });
+  return Promise.race([Promise.all(jobs), new Promise((r) => setTimeout(r, 3000))]);
 }
 
 // Dim the screen overnight so it isn't a floodlight in an empty room.

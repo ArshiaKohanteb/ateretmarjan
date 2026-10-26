@@ -585,3 +585,53 @@ body.cursor-idle, body.cursor-idle * { cursor: none !important; }
 .fx-lite .community-title span, .fx-lite .bulletin-mark { animation: none; }
 .fx-lite .glass::after, .fx-lite .now-next-bar span::after, .fx-lite .donate-method::after { display: none; }
 .fx-lite .mazal-he span { animation: drop .85s cubic-bezier(.2,1.35,.3,1) both; }
+
+/* ═══ Calmer: same effects, slower and softer ═══ */
+.glass::after {
+  background: linear-gradient(105deg,
+    transparent 0%, rgba(255,255,255,.015) 32%, rgba(255,255,255,.05) 44%,
+    rgba(255,255,255,.12) 50%, rgba(255,255,255,.05) 56%, rgba(255,255,255,.015) 68%, transparent 100%);
+  animation-duration: 24s;
+}
+.is-light .glass::after { background: linear-gradient(105deg, transparent 0%, rgba(255,255,255,.12) 42%, rgba(255,255,255,.35) 50%, rgba(255,255,255,.12) 58%, transparent 100%); }
+@keyframes glass-pass {
+  0%, 70% { transform: translateX(-140%) skewX(-14deg); opacity: 0; }
+  74% { opacity: 1; }
+  92% { opacity: 1; }
+  100% { transform: translateX(260%) skewX(-14deg); opacity: 0; }
+}
+.glass { animation-duration: 24s; }
+@keyframes rim-catch {
+  0%, 74%, 100% { border-color: var(--glass-border); }
+  84% { border-color: color-mix(in srgb, var(--glass-border) 70%, rgba(255, 255, 255, .4)); }
+}
+.group-title span, .zband-title, .now-next-label, .clock-hero .clock-ampm, .greeting,
+.sponsor-meal, .donate-title, .community-title span, .bulletin-mark {
+  background-image: linear-gradient(100deg, var(--acc-2) 0%, var(--acc-1) 40%, #FBEFCB 50%, var(--acc-1) 60%, var(--acc-2) 100%);
+  animation-duration: 20s;
+}
+.mazal-he span { animation: drop .85s cubic-bezier(.2,1.35,.3,1) both, gold-catch 12s 1.5s ease-in-out infinite; }
+@keyframes gold-catch { 0%, 70% { background-position: 100% 0; } 92%, 100% { background-position: 0% 0; } }
+.crown { animation-duration: 22s; }
+@keyframes crown-glint { 0%, 82% { background-position: 100% 0; } 96%, 100% { background-position: 0% 0; } }
+.ornament i { animation-duration: 16s; }
+@keyframes twinkle {
+  0%, 88%, 100% { transform: rotate(45deg) scale(1); box-shadow: 0 0 12px var(--acc-glow); }
+  93% { transform: rotate(45deg) scale(1.22); box-shadow: 0 0 18px var(--acc-glow); }
+}
+.rows li.is-next::after { background: linear-gradient(105deg, transparent, rgba(255,255,255,.1) 35%, rgba(255,255,255,.4) 50%, rgba(255,255,255,.1) 65%, transparent); animation-duration: 11s; }
+@keyframes row-pass { 0%, 70% { transform: translateX(-120%) skewX(-16deg); } 100% { transform: translateX(480%) skewX(-16deg); } }
+.now-next-bar span::after { background: linear-gradient(90deg, transparent, rgba(255,255,255,.55), transparent); animation-duration: 7s; }
+@keyframes bar-run { 0% { transform: translateX(-110%); } 45%, 100% { transform: translateX(380%); } }
+.donate-method::after { animation-duration: 20s; }
+.clock-colon { animation-duration: 3s; }
+@keyframes colon { 50% { opacity: .45; } }
+
+/* ═══ Smoother pictures ═══ */
+/* Blur a small copy and scale it up: looks the same, a fraction of the work. */
+.backdrop { inset: -60px; }
+.backdrop img { width: 25%; height: 25%; transform: scale(4); transform-origin: 0 0; filter: blur(14px) saturate(1.35) brightness(.48); }
+.fx-lite .backdrop img { filter: brightness(.45); }
+/* Collage tiles rise in with opacity/transform only (no per-frame repaint) */
+@keyframes tile-in { from { opacity: 0; transform: translateY(34px) scale(.97); } to { opacity: 1; transform: none; } }
+.tile img { backface-visibility: hidden; }

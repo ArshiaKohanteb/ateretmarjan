@@ -33,14 +33,17 @@ function pick(photos, n) {
 
 const DRIFTS = ["drift-1", "drift-2", "drift-3", "drift-4"];
 
-export default function CommunityScene({ tv, tz }) {
+// Chosen ahead of time by the rotation so the photos can be decoded before the slide appears.
+export function pickCollage(tv) {
+  const library = (tv.photos || []).filter((p) => p.url && p.active !== false);
+  const fits = LAYOUTS.filter((l) => l.length <= library.length);
+  const layout = fits[Math.floor(Math.random() * fits.length)] || LAYOUTS[0];
+  return { layout, photos: pick(library, layout.length) };
+}
+
+export default function CommunityScene({ tv, tz, slide }) {
   const s = tv.settings;
-  const { layout, photos } = useMemo(() => {
-    const library = (tv.photos || []).filter((p) => p.url && p.active !== false);
-    const fits = LAYOUTS.filter((l) => l.length <= library.length);
-    const layout = fits[Math.floor(Math.random() * fits.length)] || LAYOUTS[0];
-    return { layout, photos: pick(library, layout.length) };
-  }, []);
+  const { layout, photos } = useMemo(() => slide?.pick || pickCollage(tv), []);
 
   return (
     <div className="scene scene-community" style={{ "--secs": `${(s.communitySeconds || 16) + 2}s` }}>
@@ -49,7 +52,7 @@ export default function CommunityScene({ tv, tz }) {
           const [c, r, cs, rs] = layout[i];
           return (
             <figure key={p.id} className="tile" style={{ gridArea: `${r} / ${c} / span ${rs} / span ${cs}`, animationDelay: `${0.15 + i * 0.14}s` }}>
-              <img src={p.url} alt="" className={DRIFTS[(i + Math.floor(Math.random() * 4)) % 4]} />
+              <img src={p.url} alt="" decoding="async" className={DRIFTS[(i + Math.floor(Math.random() * 4)) % 4]} />
             </figure>
           );
         })}

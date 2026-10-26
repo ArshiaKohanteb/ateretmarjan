@@ -5,7 +5,7 @@ import { OCCASIONS, DEDICATIONS, ANNOUNCEMENT_STYLES } from "../../shared/defaul
 function Backdrop({ url }) {
   return (
     <div className="backdrop">
-      <img src={url} alt="" />
+      <img src={url} alt="" decoding="async" />
     </div>
   );
 }
@@ -45,7 +45,7 @@ export function FlyerScene({ slide, tv, z, sched, now, tz }) {
     return (
       <div className="scene scene-flyer flyer-wide">
         <Backdrop url={a.url} />
-        <img className="flyer-img" src={a.url} alt={a.name || ""} />
+        <img className="flyer-img" decoding="async" src={a.url} alt={a.name || ""} />
       </div>
     );
   }
@@ -55,8 +55,8 @@ export function FlyerScene({ slide, tv, z, sched, now, tz }) {
       <div className="scene scene-flyer flyer-pair">
         <Backdrop url={a.url} />
         <div className="pair">
-          <img className="flyer-img" src={a.url} alt={a.name || ""} />
-          <img className="flyer-img" src={b.url} alt={b.name || ""} />
+          <img className="flyer-img" decoding="async" src={a.url} alt={a.name || ""} />
+          <img className="flyer-img" decoding="async" src={b.url} alt={b.name || ""} />
         </div>
       </div>
     );
@@ -66,7 +66,7 @@ export function FlyerScene({ slide, tv, z, sched, now, tz }) {
     <div className="scene scene-flyer flyer-tall">
       <div className="tall-stage">
         <Backdrop url={a.url} />
-        <img className="flyer-img" src={a.url} alt={a.name || ""} />
+        <img className="flyer-img" decoding="async" src={a.url} alt={a.name || ""} />
       </div>
       <SidePanel tv={tv} z={z} sched={sched} now={now} tz={tz} />
     </div>

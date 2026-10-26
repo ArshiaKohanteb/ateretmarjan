@@ -276,22 +276,7 @@ export default function ScheduleScene({ tv, z, sched, now, tz }) {
             </div>
             <div className="now-next-bar"><span style={{ transform: `scaleX(${Math.max(0.04, Math.min(1, 1 - minutesUntil(sched.next.epoch, now) / 120))})` }} /></div>
           </div>
-        ) : sched.inPeriod && z?.havdalah ? (
-          <div className="now-next">
-            <div className="now-next-top">
-              <span className="now-next-label">{sched.period.greeting}</span>
-              <span className="now-next-when">{countdownText(z.havdalah, now)}</span>
-            </div>
-            <div className="now-next-row"><span className="now-next-name">{sched.period.endLabel}</span><Time epoch={z.havdalah} tz={tz} /></div>
-          </div>
-        ) : (
-          z?.candleLighting && sched.period && (
-            <div className="now-next">
-              <div className="now-next-top"><span className="now-next-label">Candle lighting</span><span className="now-next-when">{sched.period.title}</span></div>
-              <div className="now-next-row"><span className="now-next-name">{dayName(z.candleLighting, tz)}</span><Time epoch={z.candleLighting} tz={tz} /></div>
-            </div>
-          )
-        )}
+        ) : null}
       </aside>
 
       <main className="board glass">

@@ -5,6 +5,7 @@ import { patchTv } from "../../shared/store.js";
 import { buildSchedule, fmt, minutesUntil, localInfo } from "../../shared/schedule.js";
 import { status } from "./Announcements.jsx";
 import LivePreview from "./LivePreview.jsx";
+import { can } from "../access.js";
 
 const SCREENS = [
   { url: "https://ateretmarjan.org/tv/", label: "Normal screen" },
@@ -76,12 +77,12 @@ export default function Home({ tv, z, user, go }) {
           ) : <p className="empty-state">No times today. Add them under Times.</p>}
         </Card>
         <div className="stack">
-          <Card title="Quick controls" icon={PauseCircle} className="hide-wide">
+          {can(user, "screen") && <Card title="Quick controls" icon={PauseCircle} className="hide-wide">
             <div className="toggle-list">
               <Toggle label="Times only" hint="Pause flyers, slides and the collage" checked={tv.settings.contentPaused} onChange={(v) => patchTv("settings", { contentPaused: v })} />
               <Toggle label="Pause slides on Shabbat" checked={tv.settings.pauseOnShabbat} onChange={(v) => patchTv("settings", { pauseOnShabbat: v })} />
             </div>
-          </Card>
+          </Card>}
           <Card title="Screen addresses" subtitle="Put one of these in AbleSign." icon={ExternalLink}>
             <ScreenLinks />
           </Card>

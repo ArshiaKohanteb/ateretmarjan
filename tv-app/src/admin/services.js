@@ -21,7 +21,7 @@ export function watchUser(cb) {
     if (!user) return cb(null);
     unsubRole = onValue(adminsRef(user.uid), (snap) => {
       const v = snap.val();
-      cb({ uid: user.uid, email: user.email, name: v?.name || "", role: v?.role || null });
+      cb({ uid: user.uid, email: user.email, name: v?.name || "", role: v?.role || null, access: v?.access || null });
     }, () => cb({ uid: user.uid, email: user.email, role: null }));
   });
   return () => { unsub(); unsubRole?.(); };
@@ -44,11 +44,11 @@ export async function claimOwner(email, password, name) {
 }
 
 // Create a manager without signing the owner out (uses a throwaway app instance).
-export async function addManager(email, password, name, role = "manager") {
+export async function addManager(email, password, name, role = "manager", access = null) {
   const temp = initializeApp(firebaseConfig, "add-manager-" + Date.now());
   try {
     const cred = await createUserWithEmailAndPassword(getAuth(temp), email.trim(), password);
-    await set(adminsRef(cred.user.uid), { role, email: cred.user.email, name: name || "", addedAt: Date.now() });
+    await set(adminsRef(cred.user.uid), { role, email: cred.user.email, name: name || "", addedAt: Date.now(), ...(access && role !== "owner" ? { access } : {}) });
     await signOut(getAuth(temp));
   } finally {
     await deleteApp(temp);
@@ -57,6 +57,7 @@ export async function addManager(email, password, name, role = "manager") {
 
 export const listManagers = (cb) => onValue(adminsRef(), (s) => cb(s.val() || {}), () => cb({}));
 export const setManagerRole = (uid, role) => set(adminsRef(uid + "/role"), role);
+export const setManagerAccess = (uid, access) => set(adminsRef(uid + "/access"), access);
 export const removeManager = (uid) => remove(adminsRef(uid));
 
 // ── Photos ──

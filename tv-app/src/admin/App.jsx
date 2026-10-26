@@ -3,6 +3,7 @@ import { LayoutDashboard, Clock, Megaphone, Images, MonitorSmartphone, Settings 
 import { subscribeTv, seedTv, isDemo } from "../shared/store.js";
 import { watchUser, signIn, signOutUser, resetPassword, claimOwner } from "./services.js";
 import { Button, Field } from "./ui.jsx";
+import { can } from "./access.js";
 import Home from "./sections/Home.jsx";
 import Schedule from "./sections/Schedule.jsx";
 import Announcements from "./sections/Announcements.jsx";
@@ -128,10 +129,14 @@ export default function App() {
   if (!tv) return <div className="loading"><div className="crown-mark pulse" /></div>;
 
   const isOwner = user.role === "owner";
-  const groups = NAV.filter((g) => !g.owner || isOwner);
+  // Each manager only sees the pages they are allowed to change.
+  const groups = NAV.filter((g) => !g.owner || isOwner)
+    .map((g) => ({ ...g, items: g.items.filter((n) => n.id === "home" || g.owner || can(user, n.id)) }))
+    .filter((g) => g.items.length);
   const items = groups.flatMap((g) => g.items);
   const current = items.find((n) => n.id === page) || items[0];
-  const props = { tv, z, user, isOwner, go: setPage };
+  const allowed = new Set(items.map((n) => n.id));
+  const props = { tv, z, user, isOwner, go: (p) => allowed.has(p) && setPage(p) };
   const name = user.name || user.email || "";
 
   return (
@@ -175,7 +180,7 @@ export default function App() {
         </div>
       </main>
 
-      <aside className="rail"><LivePreview tv={tv} /></aside>
+      <aside className="rail"><LivePreview tv={tv} controls={can(user, "screen")} /></aside>
 
       <nav className="tabbar">
         {items.map((n) => (

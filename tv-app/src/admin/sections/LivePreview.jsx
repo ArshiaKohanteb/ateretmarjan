@@ -7,7 +7,7 @@ import { patchTv, isDemo } from "../../shared/store.js";
 // On phones the preview only loads on request, so the dashboard stays light.
 const SMALL = typeof window !== "undefined" && window.matchMedia("(max-width: 1000px)").matches;
 
-export default function LivePreview({ tv, inline = false }) {
+export default function LivePreview({ tv, inline = false, controls = true }) {
   const [hold, setHold] = useState("");
   const [show, setShow] = useState(!SMALL);
   const src = `/tv/?preview${isDemo() ? "&demo" : ""}${hold ? `&hold=${hold}` : ""}${SMALL ? "&lite" : ""}`;
@@ -28,7 +28,7 @@ export default function LivePreview({ tv, inline = false }) {
           { value: "flyer", label: "Flyers" }, { value: "announcement", label: "Slides" }, { value: "community", label: "Collage" }, { value: "donate", label: "Donate" },
         ]} />
       </div>
-      {!inline && (
+      {!inline && controls && (
         <div className="rail-card">
           <div className="rail-title"><span>Quick controls</span></div>
           <div className="toggle-list">

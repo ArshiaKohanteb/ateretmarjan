@@ -4,11 +4,14 @@
 // Uses the same KosherZmanim / ROYZmanim engine as the shul-wall pages
 // (reads the location from the #zy-scheduleScreen-config script tag).
 // Publishes window.__TV_ZMANIM__ and fires "tv-zmanim-ready".
-// Times are exposed as epoch milliseconds; the display formats them.
+// Times are exposed as epoch milliseconds, already rounded to the minute the
+// way royzmanim.com shows them; the display formats them.
+// Zmanim come from royzmanim.com's live calculator (roy-live.js) when it can
+// be reached, otherwise from the local copy of the engine.
 // ═══════════════════════════════════════════════════════════════
 
-import { Temporal, Makam, HiloulahYomiCalculator } from "../../libraries/kosherZmanim/kosher-zmanim.js";
-import { zDTFromFunc } from "../ROYZmanim.js";
+import { Temporal, Makam } from "../../libraries/kosherZmanim/kosher-zmanim.js";
+import { loadRoy, visibleNetz, royMinute, ROUND, epochOf as anyEpoch } from "./roy-live.js";
 import { scheduleSettings, getCurrentZDT, getJCal, getZmanCalc } from "../shul-wall/base.js";
 import n2wordsOrdinal from "../misc/n2wordsOrdinal.js";
 
@@ -76,29 +79,33 @@ function dayInfo(cal) {
 
 const DAYS_AHEAD = 8;
 let makamObjPromise = null;
-let hiloulahPromise = null;
 
 function safe(label, fn, fallback) {
   try { return fn(); } catch (e) { console.warn("[tv-bridge]", label, e); return fallback; }
 }
 
-function epochOf(value) {
-  if (!value) return null;
-  const zdt = value instanceof Temporal.ZonedDateTime ? value : zDTFromFunc(value);
-  return zdt ? zdt.epochMilliseconds : null;
+// The calculator for one day: royzmanim.com's live one, or the local engine.
+function dayCalc(source, plainDate) {
+  return source.live ? source.live.at(plainDate.toString()) : source.local.chainDate(plainDate);
 }
 
-function roundUpMinute(zdt) {
-  return zdt.second > 20 ? zdt.add({ minutes: 1 }).with({ second: 0 }) : zdt;
-}
-
-function zmanimForDate(zmanCalc, plainDate) {
-  const calc = zmanCalc.chainDate(plainDate);
+function zmanimForDate(source, plainDate) {
+  const calc = dayCalc(source, plainDate);
   const out = {};
   for (const z of ZMANIM) {
-    out[z.id] = safe(z.id, () => epochOf(calc[z.getter]()), null);
+    out[z.id] = safe(z.id, () => royMinute(anyEpoch(calc[z.getter]()), ROUND[z.id]), null);
   }
   return out;
+}
+
+// The place and settings ROY's calculator needs, from the TV's config.
+function royLocation() {
+  const l = scheduleSettings.location;
+  return {
+    name: l.name, lat: l.lat, long: l.long, elevation: l.elevation, timezone: l.timezone,
+    candleLighting: scheduleSettings.customTimes.candleLighting,
+    tzeitMinutes: scheduleSettings.customTimes.tzeithIssurMelakha?.minutes,
+  };
 }
 
 async function calculate() {
@@ -106,6 +113,10 @@ async function calculate() {
   const jCal = getJCal();
   const zmanCalc = getZmanCalc();
   const today = now.toPlainDate();
+  const loc = royLocation();
+  let live = null;
+  try { live = await loadRoy(loc); } catch (e) { console.warn("[tv-bridge] royzmanim.com unreachable, using the local engine", e); }
+  const source = { live, local: zmanCalc };
 
   // Zmanim for today and the next week, keyed by ISO date
   const days = {};
@@ -114,7 +125,7 @@ async function calculate() {
   dayCal.back();
   for (let i = -1; i < DAYS_AHEAD; i++) {
     const d = today.add({ days: i });
-    days[d.toString()] = zmanimForDate(zmanCalc, d);
+    days[d.toString()] = zmanimForDate(source, d);
     calendar[d.toString()] = safe("dayInfo", () => dayInfo(dayCal), null);
     dayCal.forward(5, 1);
   }
@@ -142,14 +153,14 @@ async function calculate() {
     const candleGetter = (erev.getDayOfWeek() == 6 || !erev.isAssurBemelacha())
       ? "getCandleLighting"
       : erev.getDayOfWeek() == 7 ? "getTzetMelakha" : "getTzetHumra";
-    candleLighting = epochOf(zmanCalc.chainDate(erev.getDate())[candleGetter]());
+    candleLighting = royMinute(anyEpoch(dayCalc(source, erev.getDate())[candleGetter]()), candleGetter === "getCandleLighting" ? ROUND.candleLighting : "later");
 
     const tzet = melakhaJCal.clone();
     do { tzet.forward(5, 1); } while (tzet.isAssurBemelacha());
     tzet.back(); tzet.back(); tzet.forward(5, 1);
-    const end = zmanCalc.chainDate(tzet.getDate());
-    havdalah = roundUpMinute(zDTFromFunc(end.getTzetMelakha())).epochMilliseconds;
-    rabbeinuTam = roundUpMinute(end.getTzetRT()).epochMilliseconds;
+    const end = dayCalc(source, tzet.getDate());
+    havdalah = royMinute(anyEpoch(end.getTzetMelakha()), ROUND.havdalah);
+    rabbeinuTam = royMinute(anyEpoch(end.getTzetRT()), ROUND.rabbeinuTam);
   });
 
   // The coming Shabbat or Yom Tov as one period: first day, last day, and what to call it.
@@ -204,17 +215,10 @@ async function calculate() {
     { id: "tehillimWeekly", study: "Tehillim (Weekly)", ref: learning.TehilimShvui || "" },
   ].filter(l => l.ref);
 
-  let hiloulot = [];
-  try {
-    hiloulahPromise ??= (async () => { const h = new HiloulahYomiCalculator(); await h.init(); return h; })();
-    const h = await hiloulahPromise;
-    const data = h.getHiloulah(jCal);
-    hiloulot = (data?.en || []).map(x => x.name);
-  } catch (e) { console.warn("[tv-bridge] hiloulot", e); }
-
   window.__TV_ZMANIM__ = {
     ready: true,
     calculatedAt: Date.now(),
+    engine: live ? "royzmanim.com" : "local",
     today: today.toString(),
     timezone: scheduleSettings.location.timezone,
     location: scheduleSettings.location.name,
@@ -232,9 +236,22 @@ async function calculate() {
     rabbeinuTam,
     makam,
     limudim,
-    hiloulot,
   };
   window.dispatchEvent(new CustomEvent("tv-zmanim-ready", { detail: window.__TV_ZMANIM__ }));
+
+  // Netz as royzmanim.com shows it: the visible sunrise over the terrain, for today and tomorrow.
+  if (live) {
+    const want = [today.toString(), today.add({ days: 1 }).toString()];
+    const publish = (date, epoch) => {
+      const cur = window.__TV_ZMANIM__;
+      if (!cur?.days?.[date]) return;
+      cur.days[date] = { ...cur.days[date], sunrise: royMinute(epoch, ROUND.sunrise) };
+      window.__TV_ZMANIM__ = { ...cur, days: { ...cur.days } };
+      window.dispatchEvent(new CustomEvent("tv-zmanim-ready", { detail: window.__TV_ZMANIM__ }));
+    };
+    const known = visibleNetz(loc, want, publish);
+    for (const [date, epoch] of Object.entries(known)) if (epoch) publish(date, epoch);
+  }
 }
 
 let lastDate = null;

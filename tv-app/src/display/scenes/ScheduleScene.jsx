@@ -87,7 +87,7 @@ function SunPath({ z, hidden, now, tz, today }) {
   const todays = z?.days?.[today] || {};
   const afterNightfall = todays.tzet && now > todays.tzet;
   const vals = z?.days?.[afterNightfall ? addDays(today, 1) : today] || {};
-  const list = (z?.zmanimList || []).filter((x) => !hidden.includes(x.id) && vals[x.id]).slice(0, 9);
+  const list = (z?.zmanimList || []).filter((x) => !hidden.includes(x.id) && vals[x.id]).slice(0, 10);
   const ready = list.length && vals.sunrise && vals.sunset;
 
   let arc = "", X = () => 0, Y = () => 0;
@@ -175,7 +175,9 @@ function levanaMessage(z, today) {
 }
 
 // One message at a time along the bottom, so it can be read from the back of the room.
-function Bulletin({ tv, z, today }) {
+// Candle lighting stays on the left (havdalah once Shabbat has begun) and the Daf Yomi on the right,
+// while the messages between them take turns.
+function Bulletin({ tv, z, today, sched, tz }) {
   const s = tv.settings;
   const d = s.donate || {};
   const items = [];
@@ -188,11 +190,7 @@ function Bulletin({ tv, z, today }) {
     const msg = levanaMessage(z, today);
     if (msg) items.push(msg);
   }
-  const learning = [];
-  if (s.showLimudim) z?.limudim?.slice(0, 1).forEach((l) => learning.push(`Daf Yomi  ${l.ref}`));
-  if (s.showMakam && z?.makam) learning.push(`Makam ${z.makam}`);
-  if (s.showHiloulot && z?.hiloulot?.length) learning.push(`Hilula of ${z.hiloulot[0]}`);
-  if (learning.length) items.push(learning.join("   ·   "));
+  if (s.showMakam && z?.makam) items.push(`Makam of the week   ·   ${z.makam}`);
   if (s.showDonate) {
     const ways = [d.venmo && `Venmo ${d.venmo}`, d.zelle && `Zelle ${d.zelle}`].filter(Boolean).join("   ·   ");
     if (ways) items.push(`Support Ateret Marjan   ·   ${ways}`);
@@ -203,12 +201,31 @@ function Bulletin({ tv, z, today }) {
     const t = setInterval(() => setI((n) => n + 1), Math.max(6, (s.tickerSpeed || 60) / 6) * 1000);
     return () => clearInterval(t);
   }, [items.length, s.tickerSpeed]);
-  if (!items.length) return null;
-  const text = items[i % items.length];
+  const P = sched?.period;
+  const candles = s.showCandleBar === false || !P ? null
+    : sched.inPeriod ? (z?.havdalah ? { label: P.isYomTov ? P.endLabel : "Havdalah", epoch: z.havdalah } : null)
+    : z?.candleLighting ? { label: "Candle Lighting", epoch: z.candleLighting } : null;
+  const daf = s.showLimudim === false ? null : z?.limudim?.find((l) => l.id === "daf")?.ref;
+  if (!items.length && !candles && !daf) return null;
+  const text = items.length ? items[i % items.length] : "";
   return (
     <footer className="bulletin glass">
-      <span className="bulletin-mark">✦</span>
-      <span key={i} className="bulletin-text" dir="auto">{text}</span>
+      {candles && (
+        <div className="bulletin-fixed bulletin-candles">
+          <span className="bulletin-label">{candles.label}</span>
+          <span className="bulletin-value">{dayName(candles.epoch, tz).slice(0, 3)} <Time epoch={candles.epoch} tz={tz} /></span>
+        </div>
+      )}
+      <div className="bulletin-roll">
+        <span className="bulletin-mark">✦</span>
+        <span key={i} className="bulletin-text" dir="auto">{text}</span>
+      </div>
+      {daf && (
+        <div className="bulletin-fixed bulletin-daf">
+          <span className="bulletin-label">Daf Yomi</span>
+          <span className="bulletin-value" dir="auto">{daf}</span>
+        </div>
+      )}
     </footer>
   );
 }
@@ -218,7 +235,7 @@ export default function ScheduleScene({ tv, z, sched, now, tz }) {
   const on = (k) => s[k] !== false;
   const pill = !on("showParasha") ? "" : z?.parasha ? `פרשת ${z.parasha}` : sched.holidayToday?.he || (sched.period?.isYomTov ? sched.period.titleHe : "");
   const greeting = on("showGreeting") ? sched.greeting : null;
-  const hasBulletin = s.showTicker || s.showDonate || s.showLimudim || s.showMakam;
+  const hasBulletin = s.showTicker || s.showDonate || s.showLimudim !== false || s.showMakam || s.showCandleBar !== false;
 
   return (
     <div className={`scene scene-schedule ${hasBulletin ? "has-bulletin" : ""}`}>
@@ -280,7 +297,7 @@ export default function ScheduleScene({ tv, z, sched, now, tz }) {
       </main>
 
       {s.showZmanim && <SunPath z={z} hidden={s.hiddenZmanim || []} now={now} tz={tz} today={sched.today} />}
-      <Bulletin tv={tv} z={z} today={sched.today} />
+      <Bulletin tv={tv} z={z} today={sched.today} sched={sched} tz={tz} />
     </div>
   );
 }

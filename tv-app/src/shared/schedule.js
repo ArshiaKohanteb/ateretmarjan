@@ -185,6 +185,10 @@ export function buildSchedule(tv, z, now = Date.now(), tz = TIMEZONE) {
     }
   }
 
+  // Candle lighting lives in the bottom bar, not in the timetable.
+  for (const g of groups) g.items = g.items.filter((m) => !/candle\s*-?\s*light/i.test(m.name || ""));
+  for (let i = groups.length - 1; i >= 0; i--) if (!groups[i].items.length) groups.splice(i, 1);
+
   const all = groups.flatMap((g) => g.items).sort((a, b) => a.epoch - b.epoch);
 
   // Early in the week, preview the coming Shabbat / Yom Tov so the board is never half empty.
@@ -192,7 +196,6 @@ export function buildSchedule(tv, z, now = Date.now(), tz = TIMEZONE) {
     groups.push({
       key: "period-preview", title: P.title, subtitle: periodSub, preview: true,
       items: [
-        { id: "cl", name: "Candle Lighting", epoch: z.candleLighting },
         { id: "hv", name: P.isYomTov ? P.endLabel : "Havdalah", epoch: z.havdalah },
       ].filter((m) => m.epoch),
     });

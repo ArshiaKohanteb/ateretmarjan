@@ -651,3 +651,16 @@ body.cursor-idle, body.cursor-idle * { cursor: none !important; }
 .linked-card .ann-body.lb-m { font-size: 32px; }
 .linked-card .ann-body.lb-s { font-size: 27px; }
 .linked-card .clock-foot { align-self: center; }
+
+/* ── Bottom bar: candle lighting and Daf Yomi stay put, messages turn between them ── */
+.bulletin { gap: 0; padding: 0 10px; overflow: hidden; }
+.bulletin-roll { flex: 1; min-width: 0; display: flex; align-items: center; gap: 22px; padding: 0 30px; }
+.bulletin-fixed { flex: none; display: flex; align-items: baseline; gap: 14px; height: 44px; padding: 0 26px; border-radius: 999px; align-items: center; white-space: nowrap; }
+.bulletin-candles { background: linear-gradient(135deg, var(--acc-1), var(--acc-2)); color: var(--acc-ink); box-shadow: 0 8px 24px -10px var(--acc-glow); }
+.bulletin-daf { border: 1px solid var(--glass-border); background: var(--glass-2); }
+.bulletin-label { font-size: 17px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; opacity: .78; }
+.bulletin-daf .bulletin-label { color: var(--acc-1); opacity: 1; }
+.is-light .bulletin-daf .bulletin-label { color: var(--acc-2); }
+.bulletin-value { font-size: 27px; font-weight: 600; display: inline-flex; align-items: baseline; gap: 8px; }
+.bulletin-value .t { font-size: 29px; font-weight: 600; }
+.bulletin-value .t small { font-size: .55em; margin-left: 2px; }

@@ -69,11 +69,11 @@ const ELEMENTS = [
   ["showZmanim", "Zmanim sun path"],
 ];
 const BAR = [
+  ["showCandleBar", "Candle lighting (always on the left)"],
   ["showTicker", "Announcements"],
   ["showLevana", "Birkat HaLevana (Sephardic times)"],
-  ["showLimudim", "Daf Yomi"],
+  ["showLimudim", "Daf Yomi (always on the right)"],
   ["showMakam", "Makam of the week"],
-  ["showHiloulot", "Hilulot"],
   ["showDonate", "Donation details"],
 ];
 
@@ -90,11 +90,11 @@ function Layout({ s, set }) {
         </div>
       </Card>
       {s.showZmanim !== false && zmanimList.length > 0 && (
-        <Card title="Zmanim on the sun path" subtitle="Tap to hide or show. Up to nine fit nicely." icon={Sun}>
+        <Card title="Zmanim on the sun path" subtitle="Tap to hide or show. Up to ten fit nicely." icon={Sun}>
           <div className="chip-pick">
             {zmanimList.map((zm) => {
               const on = !hidden.includes(zm.id);
-              return <button key={zm.id} className={on ? "on" : ""} onClick={() => set({ hiddenZmanim: on ? [...hidden, zm.id] : hidden.filter((x) => x !== zm.id) })}>{zm.label}</button>;
+              return <button key={zm.id} className={on ? "on" : ""} onClick={() => set({ hiddenZmanim: on ? [...hidden, zm.id] : hidden.filter((x) => x !== zm.id), zmanimV2: true })}>{zm.label}</button>;
             })}
           </div>
         </Card>

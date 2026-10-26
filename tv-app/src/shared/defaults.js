@@ -36,7 +36,6 @@ export const DEFAULT_SETTINGS = {
   shabbatShowFrom: 4,
   showZmanim: true,
   showLimudim: true,
-  showHiloulot: true,
   showMakam: true,
   showTicker: true,
   showLevana: true,
@@ -77,7 +76,7 @@ export const DEFAULT_SETTINGS = {
     tzeitMinutes: 30,
   },
   // Hidden zmanim (ids) on the schedule screen
-  hiddenZmanim: ["alot", "midnight", "minchaGedola"],
+  hiddenZmanim: ["alot", "midnight"],
   // Bumped from the dashboard to force every TV to reload
   reloadToken: 0,
 };
@@ -162,6 +161,8 @@ export function normalizeTv(raw) {
       },
       nightDim: { ...DEFAULT_SETTINGS.nightDim, ...(r.settings?.nightDim || {}) },
       location: { ...DEFAULT_SETTINGS.location, ...(r.settings?.location || {}) },
+      // Mincha Gedola joined the sun path; screens saved before then had it hidden.
+      ...(r.settings?.hiddenZmanim && !r.settings?.zmanimV2 ? { hiddenZmanim: r.settings.hiddenZmanim.filter((id) => id !== "minchaGedola") } : {}),
     },
     minyanim: raw ? asList(r.minyanim) : DEFAULT_MINYANIM,
     shabbat: raw ? asList(r.shabbat) : DEFAULT_SHABBAT,

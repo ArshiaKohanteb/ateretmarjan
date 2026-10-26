@@ -175,8 +175,8 @@ function levanaMessage(z, today) {
 }
 
 // One message at a time along the bottom, so it can be read from the back of the room.
-// Candle lighting stays on the left (havdalah once Shabbat has begun) and the Daf Yomi on the right,
-// while the messages between them take turns.
+// Messages take turns on the left; the Daf Yomi stays on the right, joined by candle lighting on the
+// two days before Shabbat / Yom Tov and by havdalah once it has begun.
 function Bulletin({ tv, z, today, sched, tz }) {
   const s = tv.settings;
   const d = s.donate || {};
@@ -202,24 +202,26 @@ function Bulletin({ tv, z, today, sched, tz }) {
     return () => clearInterval(t);
   }, [items.length, s.tickerSpeed]);
   const P = sched?.period;
+  const started = P && (sched.inPeriod || (today >= P.start && today <= P.end));
+  const soon = P && !started && (today === addDays(P.start, -1) || today === addDays(P.start, -2));
   const candles = s.showCandleBar === false || !P ? null
-    : sched.inPeriod ? (z?.havdalah ? { label: P.isYomTov ? P.endLabel : "Havdalah", epoch: z.havdalah } : null)
-    : z?.candleLighting ? { label: "Candle Lighting", epoch: z.candleLighting } : null;
+    : started ? (z?.havdalah ? { label: P.isYomTov ? P.endLabel : "Havdalah", epoch: z.havdalah } : null)
+    : soon && z?.candleLighting ? { label: "Candle Lighting", epoch: z.candleLighting } : null;
   const daf = s.showLimudim === false ? null : z?.limudim?.find((l) => l.id === "daf")?.ref;
   if (!items.length && !candles && !daf) return null;
   const text = items.length ? items[i % items.length] : "";
   return (
     <footer className="bulletin glass">
+      <div className="bulletin-roll">
+        <span className="bulletin-mark">✦</span>
+        <span key={i} className="bulletin-text" dir="auto">{text}</span>
+      </div>
       {candles && (
         <div className="bulletin-fixed bulletin-candles">
           <span className="bulletin-label">{candles.label}</span>
           <span className="bulletin-value">{dayName(candles.epoch, tz).slice(0, 3)} <Time epoch={candles.epoch} tz={tz} /></span>
         </div>
       )}
-      <div className="bulletin-roll">
-        <span className="bulletin-mark">✦</span>
-        <span key={i} className="bulletin-text" dir="auto">{text}</span>
-      </div>
       {daf && (
         <div className="bulletin-fixed bulletin-daf">
           <span className="bulletin-label">Daf Yomi</span>

@@ -664,3 +664,4 @@ body.cursor-idle, body.cursor-idle * { cursor: none !important; }
 .bulletin-value { font-size: 27px; font-weight: 600; display: inline-flex; align-items: baseline; gap: 8px; }
 .bulletin-value .t { font-size: 29px; font-weight: 600; }
 .bulletin-value .t small { font-size: .55em; margin-left: 2px; }
+.bulletin-candles + .bulletin-daf { margin-left: 10px; }

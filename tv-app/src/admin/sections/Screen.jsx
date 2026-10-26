@@ -69,10 +69,10 @@ const ELEMENTS = [
   ["showZmanim", "Zmanim sun path"],
 ];
 const BAR = [
-  ["showCandleBar", "Candle lighting (always on the left)"],
+  ["showCandleBar", "Candle lighting Thu–Fri, havdalah on Shabbat"],
   ["showTicker", "Announcements"],
   ["showLevana", "Birkat HaLevana (Sephardic times)"],
-  ["showLimudim", "Daf Yomi (always on the right)"],
+  ["showLimudim", "Daf Yomi (always on)"],
   ["showMakam", "Makam of the week"],
   ["showDonate", "Donation details"],
 ];

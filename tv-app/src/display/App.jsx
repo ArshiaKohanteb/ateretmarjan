@@ -128,10 +128,10 @@ export default function App() {
   };
 
   return (
-    <div className={`viewport theme-${themeId} ${theme.dark ? "is-dark" : "is-light"} fx-${tv.settings.effects === "lite" || HANDHELD ? "lite" : "full"} tr-${tv.settings.transition || "fade"} ${stage.w / stage.h < 1.6 ? "is-narrow" : ""}`} style={{ ...theme.vars, "--sky": sky }}>
+    <div className={`viewport theme-${themeId} ${theme.dark ? "is-dark" : "is-light"} fx-${tv.settings.effects === "lite" || HANDHELD ? "lite" : "full"} tr-${tv.settings.transition || "fade"} ${stage.w / stage.h < 1.6 ? "is-narrow" : ""} ${flip ? "is-flipped" : ""}`} style={{ ...theme.vars, "--sky": sky }}>
       <div
         className="stage"
-        style={{ width: stage.w, height: stage.h, transform: `translate(-50%, -50%) scale(${stage.scale})${flip ? " rotate(180deg)" : ""}` }}
+        style={{ width: stage.w, height: stage.h, left: stage.x, top: stage.y, transform: `scale(${stage.scale})` }}
       >
         <div className="ambient" aria-hidden="true">
           <div className="amb-photo" />

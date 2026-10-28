@@ -13,9 +13,11 @@ body.cursor-idle, body.cursor-idle * { cursor: none !important; }
   font-family: "Red Hat Display", system-ui, sans-serif;
   font-feature-settings: "tnum" 1, "lnum" 1;
 }
+/* Upside-down TVs turn the whole screen at full size; turning the scaled stage blurred the text. */
+.viewport.is-flipped { transform: rotate(180deg); }
 .stage {
-  position: absolute; left: 50%; top: 50%;
-  transform-origin: center center;
+  position: absolute; left: 0; top: 0;
+  transform-origin: 0 0;
   overflow: hidden;
   background: var(--bg);
 }

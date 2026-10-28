@@ -53,7 +53,8 @@ export function useStage(w = 1920, h = 1080) {
     const sw = Math.max(w, Math.round(h * aspect));
     const sh = Math.max(h, Math.round(sw / aspect));
     const scale = Math.min(W / sw, H / sh);
-    return { scale, w: sw, h: sh };
+    // Whole-pixel position, so text isn't drawn between pixels (blurry)
+    return { scale, w: sw, h: sh, x: Math.round((W - sw * scale) / 2), y: Math.round((H - sh * scale) / 2) };
   };
   const [stage, setStage] = useState(calc);
   useEffect(() => {

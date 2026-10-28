@@ -131,7 +131,11 @@ export default function App() {
     <div className={`viewport theme-${themeId} ${theme.dark ? "is-dark" : "is-light"} fx-${tv.settings.effects === "lite" || HANDHELD ? "lite" : "full"} tr-${tv.settings.transition || "fade"} ${stage.w / stage.h < 1.6 ? "is-narrow" : ""} ${flip ? "is-flipped" : ""}`} style={{ ...theme.vars, "--sky": sky }}>
       <div
         className="stage"
-        style={{ width: stage.w, height: stage.h, left: stage.x, top: stage.y, transform: `scale(${stage.scale})` }}
+        style={flip
+          // Upside down: size with zoom so text is laid out at its real size; a scale transform
+          // under the turn gets drawn as a resized picture by some browsers (blurry).
+          ? { width: stage.w, height: stage.h, zoom: stage.scale, left: stage.x / stage.scale, top: stage.y / stage.scale }
+          : { width: stage.w, height: stage.h, left: stage.x, top: stage.y, transform: `scale(${stage.scale})` }}
       >
         <div className="ambient" aria-hidden="true">
           <div className="amb-photo" />

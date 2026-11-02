@@ -1,5 +1,5 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Brand, Clock, Time, countdownText, Ornament } from "./common.jsx";
+import { Brand, Clock, Time, candleTime, countdownText, Ornament } from "./common.jsx";
 import { minutesUntil } from "../../shared/schedule.js";
 import { addDays, isLive } from "./util.js";
 
@@ -201,12 +201,7 @@ function Bulletin({ tv, z, today, sched, tz }) {
     const t = setInterval(() => setI((n) => n + 1), Math.max(6, (s.tickerSpeed || 60) / 6) * 1000);
     return () => clearInterval(t);
   }, [items.length, s.tickerSpeed]);
-  const P = sched?.period;
-  const started = P && (sched.inPeriod || (today >= P.start && today <= P.end));
-  const soon = P && !started && (today === addDays(P.start, -1) || today === addDays(P.start, -2));
-  const candles = s.showCandleBar === false || !P ? null
-    : started ? (z?.havdalah ? { label: P.isYomTov ? P.endLabel : "Havdalah", epoch: z.havdalah } : null)
-    : soon && z?.candleLighting ? { label: "Candle Lighting", epoch: z.candleLighting } : null;
+  const candles = candleTime(tv, z, sched);
   const daf = s.showLimudim === false ? null : z?.limudim?.find((l) => l.id === "daf")?.ref;
   if (!items.length && !candles && !daf) return null;
   const text = items.length ? items[i % items.length] : "";
@@ -248,7 +243,7 @@ export default function ScheduleScene({ tv, z, sched, now, tz }) {
         </div>
 
         <div className="now-main">
-          <Clock showSeconds={s.showSeconds} tz={tz} className="clock-hero" />
+          <Clock showSeconds={s.showClockSeconds} tz={tz} className="clock-hero" />
           <Ornament className="now-rule" />
           <div className="now-dates">
             <div className="now-dates-l">

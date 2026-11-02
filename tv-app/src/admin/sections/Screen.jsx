@@ -225,7 +225,7 @@ function ClockText({ s, set }) {
       <Card title="Clock" icon={Clock}>
         <div className="grid-2">
           <Field label="Format"><Segmented value={s.clock24 ? "24" : "12"} onChange={(v) => set({ clock24: v === "24" })} options={[{ value: "12", label: "6:30 PM" }, { value: "24", label: "18:30" }]} /></Field>
-          <Field label="Seconds"><Segmented value={s.showSeconds ? "on" : "off"} onChange={(v) => set({ showSeconds: v === "on" })} options={[{ value: "off", label: "Hide" }, { value: "on", label: "Show" }]} /></Field>
+          <Field label="Seconds"><Segmented value={s.showClockSeconds !== false ? "on" : "off"} onChange={(v) => set({ showClockSeconds: v === "on" })} options={[{ value: "off", label: "Hide" }, { value: "on", label: "Show" }]} /></Field>
         </div>
       </Card>
       <Card title="Hebrew font" subtitle="Used for the Hebrew date, parasha, names and מזל טוב." icon={Type}>

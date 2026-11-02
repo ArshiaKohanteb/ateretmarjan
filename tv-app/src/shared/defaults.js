@@ -19,7 +19,7 @@ export const DEFAULT_SETTINGS = {
   shabbatTheme: "",
   flip: false,
   effects: "full",
-  showSeconds: false,
+  showClockSeconds: true,
   // Rotation
   scheduleSeconds: 30,
   flyerSeconds: 12,

@@ -63,7 +63,7 @@ export default function CommunityScene({ tv, tz, slide }) {
           <span>{s.communityTitle || "Our Community"}</span>
           <Ornament />
         </div>
-        <Clock tz={tz} className="clock-foot" />
+        <Clock showSeconds={tv.settings.showClockSeconds} tz={tz} className="clock-foot" />
       </div>
     </div>
   );

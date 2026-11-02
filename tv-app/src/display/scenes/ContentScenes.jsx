@@ -1,38 +1,55 @@
 import React, { useEffect, useRef } from "react";
-import { Brand, Clock, Time, countdownText, Ornament } from "./common.jsx";
+import { Brand, Clock, Time, candleTime, countdownText, Ornament } from "./common.jsx";
+import { addDays } from "./util.js";
 import { OCCASIONS, DEDICATIONS, ANNOUNCEMENT_STYLES } from "../../shared/defaults.js";
 
-function Backdrop({ url }) {
-  return (
-    <div className="backdrop">
-      <img src={url} alt="" decoding="async" />
-    </div>
-  );
+// Minyanim and zmanim still to come, soonest first.
+function comingUp(tv, z, sched, now) {
+  const hidden = tv.settings.hiddenZmanim || [];
+  const zmanim = [sched.today, addDays(sched.today, 1)].flatMap((d) =>
+    (tv.settings.showZmanim ? z?.zmanimList || [] : [])
+      .filter((x) => !hidden.includes(x.id))
+      .map((x) => ({ id: `${d}-${x.id}`, name: x.label, epoch: z.days?.[d]?.[x.id] })));
+  return [...sched.upcoming, ...zmanim].filter((m) => m.epoch > now).sort((a, b) => a.epoch - b.epoch);
 }
 
-// The live strip beside portrait flyers: clock, date, what's next.
-function SidePanel({ tv, z, sched, now, tz, narrow }) {
-  const upcoming = sched.upcoming.slice(narrow ? 0 : 1, narrow ? 2 : 4);
+// The live panel beside a single portrait flyer.
+function SidePanel({ tv, z, sched, now, tz }) {
+  const [next, ...rest] = comingUp(tv, z, sched, now);
+  const candles = candleTime(tv, z, sched);
+  const daf = tv.settings.showLimudim === false ? null : z?.limudim?.find((l) => l.id === "daf")?.ref;
   return (
-    <aside className={`side glass ${narrow ? "side-narrow" : ""}`}>
+    <aside className="side glass">
       <Brand tv={tv} small />
       <div className="side-main">
-        <Clock tz={tz} className="clock-side" />
-        {!narrow && z?.hebrewDate?.hebrew && <div className="side-hebdate" dir="rtl">{z.hebrewDate.hebrew}</div>}
+        <Clock showSeconds={tv.settings.showClockSeconds} tz={tz} className="clock-side" />
+        <div className="side-dates">
+          {z?.hebrewDate?.civil && <span>{z.hebrewDate.civil}</span>}
+          {z?.hebrewDate?.hebrew && <span dir="rtl">{z.hebrewDate.hebrew}</span>}
+          {z?.parasha && <span dir="rtl">{`פרשת ${z.parasha}`}</span>}
+        </div>
       </div>
-      {!narrow && sched.next && (
+      {next && (
         <div className="side-next">
-          <span className="side-next-name" dir="auto">{sched.next.name}</span>
-          <Time epoch={sched.next.epoch} tz={tz} />
-          <span className="side-next-when">{countdownText(sched.next.epoch, now)}</span>
+          <span className="side-next-top"><span>Next</span><span>{countdownText(next.epoch, now)}</span></span>
+          <span className="side-next-row">
+            <span className="side-next-name" dir="auto">{next.name}</span>
+            <Time epoch={next.epoch} tz={tz} />
+          </span>
         </div>
       )}
-      {upcoming.length > 0 && (
+      {rest.length > 0 && (
         <ul className="side-list">
-          {upcoming.map((m) => (
+          {rest.slice(0, 5).map((m) => (
             <li key={m.id + m.epoch}><span dir="auto">{m.name}</span><Time epoch={m.epoch} tz={tz} /></li>
           ))}
         </ul>
+      )}
+      {(candles || daf) && (
+        <dl className="side-facts">
+          {candles && <div><dt>{candles.label}</dt><dd><Time epoch={candles.epoch} tz={tz} /></dd></div>}
+          {daf && <div><dt>Daf Yomi</dt><dd dir="auto">{daf}</dd></div>}
+        </dl>
       )}
     </aside>
   );
@@ -44,7 +61,6 @@ export function FlyerScene({ slide, tv, z, sched, now, tz }) {
   if (slide.layout === "wide") {
     return (
       <div className="scene scene-flyer flyer-wide">
-        <Backdrop url={a.url} />
         <img className="flyer-img" decoding="async" src={a.url} alt={a.name || ""} />
       </div>
     );
@@ -53,7 +69,6 @@ export function FlyerScene({ slide, tv, z, sched, now, tz }) {
   if (slide.layout === "pair") {
     return (
       <div className="scene scene-flyer flyer-pair">
-        <Backdrop url={a.url} />
         <div className="pair">
           <img className="flyer-img" decoding="async" src={a.url} alt={a.name || ""} />
           <img className="flyer-img" decoding="async" src={b.url} alt={b.name || ""} />
@@ -65,7 +80,6 @@ export function FlyerScene({ slide, tv, z, sched, now, tz }) {
   return (
     <div className="scene scene-flyer flyer-tall">
       <div className="tall-stage">
-        <Backdrop url={a.url} />
         <img className="flyer-img" decoding="async" src={a.url} alt={a.name || ""} />
       </div>
       <SidePanel tv={tv} z={z} sched={sched} now={now} tz={tz} />
@@ -81,7 +95,7 @@ function SlideFoot({ tv, sched, tz }) {
         {sched.next && (
           <span className="slide-next"><span dir="auto">{sched.next.name}</span> <Time epoch={sched.next.epoch} tz={tz} /></span>
         )}
-        <Clock tz={tz} className="clock-foot" />
+        <Clock showSeconds={tv.settings.showClockSeconds} tz={tz} className="clock-foot" />
       </div>
     </footer>
   );
@@ -100,7 +114,6 @@ export function AnnouncementScene(props) {
   if (flyer) {
     return (
       <div className={`scene scene-flyer ann-linked ann-${a.style || "info"}`}>
-        <Backdrop url={flyer.url} />
         <div className="linked-stage"><img className="flyer-img" decoding="async" src={flyer.url} alt={flyer.name || ""} /></div>
         <aside className="side glass linked-card">
           <Brand tv={tv} small />
@@ -109,7 +122,7 @@ export function AnnouncementScene(props) {
             {title && <h1 className={`ann-title ${sizeClass(title, [[22, "lt-l"], [44, "lt-m"], [999, "lt-s"]])}`} dir="auto">{title}</h1>}
             {body && <p className={`ann-body ${sizeClass(body, [[110, "lb-l"], [220, "lb-m"], [999, "lb-s"]])}`} dir="auto">{body}</p>}
           </div>
-          <Clock tz={tz} className="clock-foot" />
+          <Clock showSeconds={tv.settings.showClockSeconds} tz={tz} className="clock-foot" />
         </aside>
       </div>
     );

@@ -58,7 +58,7 @@ export default function DonateScene({ tv, sched }) {
         <Ornament className="rise" />
         <h1 className="donate-title rise" style={{ animationDelay: ".1s" }}>Support {tv.settings.shulName}</h1>
         <p className="donate-sub rise" style={{ animationDelay: ".25s" }}>
-          {shabbat ? "Please remember us after Shabbat" : "Your generosity keeps our minyanim, kiddush and programs going"}
+          {shabbat ? "Please remember us after Shabbat" : "Partner with us to create a brighter future for our kids"}
         </p>
         <div className={`donate-methods ${shabbat ? "no-qr" : ""}`}>
           {methods.map((m, i) => (

@@ -221,11 +221,12 @@ body.cursor-idle, body.cursor-idle * { cursor: none !important; }
 .bulletin-text { font-size: 29px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; animation: rise .8s cubic-bezier(.2,.7,.2,1) both; }
 
 /* ── Flyers ── */
-.scene-flyer { background: #0B1120; color: #fff; z-index: 2; }
+.scene-flyer { background: #EFE9DC; color: #fff; z-index: 2; }
+.scene-flyer .side.glass { background: #0F1830; border-color: transparent; box-shadow: 0 30px 70px -24px rgba(20, 16, 8, .55); -webkit-backdrop-filter: none; backdrop-filter: none; }
 .flyer-img { display: block; object-fit: contain; position: relative; }
 .flyer-wide .flyer-img { position: absolute; inset: 0; width: 100%; height: 100%; }
 .pair { position: absolute; inset: 44px; display: flex; justify-content: center; align-items: center; gap: 48px; }
-.pair .flyer-img, .tall-stage .flyer-img, .linked-stage .flyer-img { border-radius: 18px; box-shadow: 0 0 0 1px rgba(255,255,255,.16), 0 30px 80px -20px rgba(0,0,0,.8); }
+.pair .flyer-img, .tall-stage .flyer-img, .linked-stage .flyer-img { border-radius: 18px; box-shadow: 0 0 0 1px rgba(40,30,10,.14), 0 30px 70px -24px rgba(20,16,8,.6); }
 .pair .flyer-img { height: 100%; width: auto; max-width: calc(50% - 24px); }
 .flyer-tall { display: grid; grid-template-columns: 1fr 640px; }
 .tall-stage { position: absolute; inset: 0; display: grid; grid-template-rows: minmax(0, 1fr); place-items: center; padding-right: 640px; }

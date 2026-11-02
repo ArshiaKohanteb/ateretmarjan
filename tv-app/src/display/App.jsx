@@ -8,6 +8,7 @@ import ScheduleScene from "./scenes/ScheduleScene.jsx";
 import { FlyerScene, AnnouncementScene } from "./scenes/ContentScenes.jsx";
 import CommunityScene, { pickCollage } from "./scenes/CommunityScene.jsx";
 import DonateScene from "./scenes/DonateScene.jsx";
+import LogoScene from "./scenes/LogoScene.jsx";
 
 const params = new URLSearchParams(location.search);
 const HOLD = params.get("hold"); // schedule | flyer | announcement (dashboard preview)
@@ -54,7 +55,7 @@ export default function App() {
       const s = tv.settings;
       const holdForMinyan = s.holdBeforeMinyan > 0 && sched?.next && minutesUntil(sched.next.epoch) <= s.holdBeforeMinyan;
       let pool = content;
-      if (HOLD === "flyer" || HOLD === "announcement" || HOLD === "community" || HOLD === "donate") pool = content.filter((c) => c.kind === HOLD);
+      if (HOLD === "flyer" || HOLD === "announcement" || HOLD === "community" || HOLD === "donate" || HOLD === "logo") pool = content.filter((c) => c.kind === HOLD);
       const shabbatPause = s.pauseOnShabbat && sched?.inPeriod;
       const contentAllowed = HOLD !== "schedule" && pool.length > 0 && (HOLD || (!s.contentPaused && !holdForMinyan && !shabbatPause));
 
@@ -124,6 +125,7 @@ export default function App() {
     if (slide.kind === "announcement") return <AnnouncementScene {...props} />;
     if (slide.kind === "community") return <CommunityScene {...props} />;
     if (slide.kind === "donate") return <DonateScene {...props} />;
+    if (slide.kind === "logo") return <LogoScene {...props} />;
     return <ScheduleScene {...props} />;
   };
 

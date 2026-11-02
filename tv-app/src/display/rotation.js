@@ -55,12 +55,14 @@ export function buildContent(tv, today, sizes) {
   }
   const d = s.donate || {};
   if (s.showDonateSlide !== false && (d.venmo || d.zelle || d.website)) out.push({ kind: "donate", key: "donate" });
+  if (s.showLogoSlide !== false) out.push({ kind: "logo", key: "logo" });
   return out;
 }
 
 export function slideSeconds(slide, settings) {
   if (slide.kind === "schedule") return settings.scheduleSeconds || 30;
   if (slide.kind === "donate") return settings.announcementSeconds || 12;
+  if (slide.kind === "logo") return settings.logoSeconds || 14;
   if (slide.kind === "community") return settings.communitySeconds || 16;
   if (slide.kind === "announcement") return slide.item.seconds || settings.announcementSeconds || 12;
   const custom = Math.max(...slide.items.map((f) => f.seconds || 0));

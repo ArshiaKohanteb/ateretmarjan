@@ -28,6 +28,8 @@ export const DEFAULT_SETTINGS = {
   pairVerticalFlyers: true,
   showCommunity: true,
   showDonateSlide: true,
+  showLogoSlide: true,
+  logoSeconds: 14,
   communitySeconds: 16,
   communityTitle: "Our Community",
   holdBeforeMinyan: 10,

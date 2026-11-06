@@ -38,6 +38,13 @@
         ".read": "auth != null && auth.uid === $uid",
         ".write": "auth != null && ((!root.child('tvAdmins').exists() && auth.uid === $uid && newData.child('role').val() === 'owner') || root.child('tvAdmins').child(auth.uid).child('role').val() === 'owner')"
       }
+    },
+    "tvRequests": {
+      ".read": "auth != null && root.child('tvAdmins').child(auth.uid).child('role').val() === 'owner'",
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && (auth.uid === $uid || root.child('tvAdmins').child(auth.uid).child('role').val() === 'owner')"
+      }
     }
   }
 }

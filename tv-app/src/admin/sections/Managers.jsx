@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { UserPlus, Trash2 } from "lucide-react";
+import { UserPlus, Trash2, Check, X } from "lucide-react";
 import { Card, Button, Field, Segmented } from "../ui.jsx";
-import { listManagers, addManager, removeManager, setManagerRole, setManagerAccess, resetPassword } from "../services.js";
+import { listManagers, addManager, removeManager, setManagerRole, setManagerAccess, resetPassword, listRequests, approveRequest, declineRequest } from "../services.js";
 import { AREAS, PRESETS, FULL_ACCESS, accessOf, accessSummary } from "../access.js";
 import { isDemo } from "../../shared/store.js";
 
@@ -27,11 +27,13 @@ function AccessPicker({ value, onChange }) {
 
 export default function Managers({ user }) {
   const [list, setList] = useState({});
+  const [requests, setRequests] = useState({});
   const [form, setForm] = useState({ name: "", email: "", password: "", role: "manager", access: FULL_ACCESS });
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => (isDemo() ? undefined : listManagers(setList)), []);
+  useEffect(() => (isDemo() ? undefined : listRequests(setRequests)), []);
 
   if (isDemo()) {
     return <Card title="Managers"><p className="hint">Managers can't be changed in preview mode.</p></Card>;
@@ -45,13 +47,28 @@ export default function Managers({ user }) {
       setMsg(`Added ${form.email}. Send them the dashboard link and their password.`);
       setForm({ name: "", email: "", password: "", role: "manager", access: FULL_ACCESS });
     } catch (err) {
-      setMsg(err.code === "auth/email-already-in-use" ? "That email already has an account." : err.code === "auth/weak-password" ? "Password needs at least 6 characters." : err.message);
+      setMsg(err.code === "auth/email-already-in-use" ? "That email already has an account. Ask them to sign in to the dashboard and tap \u201cAsk for access\u201d, then approve them here." : err.code === "auth/weak-password" ? "Password needs at least 6 characters." : err.message);
     }
     setBusy(false);
   }
 
   return (
     <div className="stack">
+      {Object.keys(requests).length > 0 && (
+        <Card title="Asking for access" subtitle="They already have an account. Approve to add them as a manager, then choose what they're in charge of below.">
+          <ul className="people">
+            {Object.entries(requests).map(([uid, r]) => (
+              <li key={uid}>
+                <div className="avatar">{(r.email || "?")[0].toUpperCase()}</div>
+                <div className="person"><b>{r.email}</b><span>{r.at ? new Date(r.at).toLocaleString() : ""}</span></div>
+                <Button variant="primary" icon={Check} onClick={() => approveRequest(uid, r)}>Approve</Button>
+                <button className="icon-btn danger" aria-label="Decline" onClick={() => declineRequest(uid)}><X size={18} /></button>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
+
       <Card title="People who can edit the TV" subtitle="Owners can change everything and choose what each manager is in charge of. Managers only see the pages they're given.">
         <ul className="people">
           {Object.entries(list).map(([uid, p]) => (

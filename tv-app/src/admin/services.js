@@ -6,7 +6,7 @@ import {
 } from "firebase/auth";
 import { get, set, remove, onValue } from "firebase/database";
 import { getStorage, ref as sRef, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
-import { app, firebaseConfig, adminsRef } from "../shared/firebase.js";
+import { app, firebaseConfig, adminsRef, requestsRef } from "../shared/firebase.js";
 import { isDemo } from "../shared/store.js";
 
 export const auth = getAuth(app);
@@ -59,6 +59,16 @@ export const listManagers = (cb) => onValue(adminsRef(), (s) => cb(s.val() || {}
 export const setManagerRole = (uid, role) => set(adminsRef(uid + "/role"), role);
 export const setManagerAccess = (uid, access) => set(adminsRef(uid + "/access"), access);
 export const removeManager = (uid) => remove(adminsRef(uid));
+
+// Someone with an account who isn't a manager (for example after being removed) asks to be let back in.
+export const requestAccess = (user) => set(requestsRef(user.uid), { email: user.email, at: Date.now() });
+export const watchMyRequest = (uid, cb) => onValue(requestsRef(uid), (s) => cb(s.val()), () => cb(null));
+export const listRequests = (cb) => onValue(requestsRef(), (s) => cb(s.val() || {}), () => cb({}));
+export const declineRequest = (uid) => remove(requestsRef(uid));
+export async function approveRequest(uid, req) {
+  await set(adminsRef(uid), { role: "manager", email: req.email, name: "", addedAt: Date.now() });
+  await remove(requestsRef(uid));
+}
 
 // ── Photos ──
 

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { LayoutDashboard, Clock, Megaphone, Images, MonitorSmartphone, Settings as SettingsIcon, LogOut } from "lucide-react";
 import { subscribeTv, seedTv, isDemo, setEditor } from "../shared/store.js";
-import { watchUser, signIn, signOutUser, resetPassword, claimOwner } from "./services.js";
+import { watchUser, signIn, signOutUser, resetPassword, claimOwner, requestAccess, watchMyRequest } from "./services.js";
 import { Button, Field, EditedBy } from "./ui.jsx";
 import { can } from "./access.js";
 import Home from "./sections/Home.jsx";
@@ -96,6 +96,27 @@ function Login() {
   );
 }
 
+// Signed in but not on the list: one tap asks the owners, who approve it in Settings → People.
+function NoAccess({ user }) {
+  const [request, setRequest] = useState(undefined);
+  const [error, setError] = useState("");
+  useEffect(() => watchMyRequest(user.uid, setRequest), [user.uid]);
+  const ask = () => requestAccess(user).catch(() => setError("Couldn't send the request. Ask an owner to approve you in Settings → People."));
+  return (
+    <div className="login">
+      <div className="login-card">
+        <div className="login-brand"><div className="crown-mark" /><h1>No access yet</h1>
+          <p>{request
+            ? "Your request was sent. You'll get in as soon as an owner approves it in Settings → People."
+            : `${user.email} isn't on the list of TV managers yet.`}</p></div>
+        {request === null && <Button variant="primary" onClick={ask}>Ask for access</Button>}
+        {error && <p className="hint">{error}</p>}
+        <Button onClick={signOutUser} icon={LogOut}>Sign out</Button>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [user, setUser] = useState(undefined);
   const [tv, setTv] = useState(null);
@@ -122,17 +143,7 @@ export default function App() {
 
   if (user === undefined) return <div className="loading"><div className="crown-mark pulse" /></div>;
   if (!user) return <Login />;
-  if (!user.role) {
-    return (
-      <div className="login">
-        <div className="login-card">
-          <div className="login-brand"><div className="crown-mark" /><h1>No access yet</h1>
-            <p>{user.email} isn't on the list of TV managers. Ask the owner to add you in Settings → People.</p></div>
-          <Button onClick={signOutUser} icon={LogOut}>Sign out</Button>
-        </div>
-      </div>
-    );
-  }
+  if (!user.role) return <NoAccess user={user} />;
   if (!tv) return <div className="loading"><div className="crown-mark pulse" /></div>;
 
   const isOwner = user.role === "owner";

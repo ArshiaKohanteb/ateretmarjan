@@ -19,3 +19,5 @@ export const db = getDatabase(app);
 export const TV_PATH = "tv";
 export const tvRef = (path = "") => ref(db, path ? `${TV_PATH}/${path}` : TV_PATH);
 export const adminsRef = (uid = "") => ref(db, uid ? `tvAdmins/${uid}` : "tvAdmins");
+// People who have an account but aren't on the list ask here; an owner approves them.
+export const requestsRef = (uid = "") => ref(db, uid ? `tvRequests/${uid}` : "tvRequests");

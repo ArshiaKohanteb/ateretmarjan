@@ -75,7 +75,7 @@ function NowCard({ next, rows, now, tz, h24, tomorrow }) {
   const marks = rows.filter((r) => r.at > rise && r.at < set && r.id !== "candles").map((r) => ({ id: r.id, f: (r.at - rise) / (set - rise) }));
   const Icon = ICONS[next.id] || Clock3;
   return (
-    <section className={`now rise ${day ? "" : "is-night"}`} aria-label="Next zman">
+    <section className={`now glass rise ${day ? "" : "is-night"}`} aria-label="Next zman">
       <span className="now-eyebrow"><Icon size={16} />{tomorrow ? "First tomorrow" : "Next"} · in {until(next.at - now)}</span>
       <div className="now-row"><b>{next.label}</b><Clock at={next.at} tz={tz} h24={h24} /></div>
       <svg className="now-arc" viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
@@ -278,6 +278,7 @@ export default function Zmanim() {
 
   return (
     <div className="page">
+      <div className="ambient" aria-hidden="true"><i className="amb-photo" /><i className="amb-tint" /><i className="orb orb-a" /><i className="orb orb-b" /><i className="orb orb-c" /><i className="amb-vignette" /></div>
       <header className={`top ${scrolled ? "is-scrolled" : ""}`}>
         <div className="top-in">
           <a className="brand" href="/"><i aria-hidden="true" /><span>Ateret Marjan</span></a>
@@ -289,6 +290,7 @@ export default function Zmanim() {
         <p className="eyebrow">Zmanim</p>
         <h1 dir="rtl" lang="he">{heb.he}</h1>
         <p className="sub">{civilDate(day)} · {heb.en}</p>
+        <div className="ornament" aria-hidden="true"><span /><i /><span /></div>
         {(shabbat?.parasha || levana) && (
           <div className="chips">
             {shabbat?.parasha && <span className="chip"><BookOpen size={15} /><span dir="rtl" lang="he">פרשת {shabbat.parasha}</span></span>}
@@ -322,7 +324,7 @@ export default function Zmanim() {
           {day === today && <NowCard next={next} rows={todays} now={now} tz={tz} h24={prefs.h24} tomorrow={!upcoming} />}
 
           {shabbat && day === today && (
-            <section className="shabbat rise">
+            <section className="shabbat glass rise">
               <header>
                 <Flame size={20} />
                 <div><b>{shabbat.title}{shabbat.parasha && <> · <span dir="rtl" lang="he">{shabbat.parasha}</span></>}</b>
@@ -344,7 +346,7 @@ export default function Zmanim() {
             return (
               <section key={p.id} className="part rise">
                 <h2>{p.label} <span lang="he">{p.he}</span></h2>
-                <ul className="z-list">
+                <ul className="z-list glass">
                   {list.map((r) => <Row key={r.id} r={r} tz={tz} h24={prefs.h24} next={r.id === nextId} past={day === today && r.at < now}
                     open={!!open[r.id]} onToggle={() => setOpen({ ...open, [r.id]: !open[r.id] })} />)}
                 </ul>

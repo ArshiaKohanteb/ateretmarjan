@@ -286,6 +286,8 @@ export default function Zmanim() {
         </div>
       </header>
 
+      <div className="layout">
+      <aside className="side">
       <section className="hero rise">
         <p className="eyebrow">Zmanim</p>
         <h1 dir="rtl" lang="he">{heb.he}</h1>
@@ -319,11 +321,9 @@ export default function Zmanim() {
       )}
       <p className="meta">{minhag.label}{home && prefs.minhag === "sephardi" ? " · Same times as the shul's TV" : ""}{loc.sub ? ` · ${loc.sub}` : ""}</p>
 
-      {!K ? <p className="loading">Working out the zmanim…</p> : (
-        <>
-          {day === today && <NowCard next={next} rows={todays} now={now} tz={tz} h24={prefs.h24} tomorrow={!upcoming} />}
+      {K && day === today && <NowCard next={next} rows={todays} now={now} tz={tz} h24={prefs.h24} tomorrow={!upcoming} />}
 
-          {shabbat && day === today && (
+      {K && shabbat && day === today && (
             <section className="shabbat glass rise">
               <header>
                 <Flame size={20} />
@@ -338,8 +338,12 @@ export default function Zmanim() {
             </section>
           )}
 
-          {prefs.shaah && view?.hour > 0 && <p className="shaah">Shaah zmanit: <b>{Math.floor(view.hour / 60_000)} min {Math.round((view.hour % 60_000) / 1000)} sec</b></p>}
+      {K && prefs.shaah && view?.hour > 0 && <p className="shaah">Shaah zmanit: <b>{Math.floor(view.hour / 60_000)} min {Math.round((view.hour % 60_000) / 1000)} sec</b></p>}
+      </aside>
 
+      <div className="main">
+      {!K ? <p className="loading">Working out the zmanim…</p> : (
+        <>
           {PARTS.map((p) => {
             const list = rows.filter((r) => r.part === p.id);
             if (!list.length) return null;
@@ -355,6 +359,8 @@ export default function Zmanim() {
           })}
         </>
       )}
+      </div>
+      </div>
 
       <footer className="foot">
         <button className="share" onClick={share}><Share size={17} />Share these zmanim</button>

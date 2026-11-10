@@ -150,22 +150,29 @@ section.block { margin-top: 64px; }
 .news h3 { font: 700 23px/1.1 var(--serif); }
 .news p { margin-top: 4px; color: var(--muted); }
 
-/* Community: faceless photos */
-.gallery { display: grid; grid-template-columns: 1.3fr 1fr; grid-template-rows: 180px 180px; gap: 12px; }
-.gallery figure { position: relative; padding: 0; }
-.gallery figure:first-child { grid-row: 1 / 3; }
-.gallery img { width: 100%; height: 100%; object-fit: cover; transition: transform 1.2s cubic-bezier(.2, .7, .2, 1); }
-.gallery figure:hover img { transform: scale(1.05); }
-.gallery figcaption { position: absolute; left: 10px; right: 10px; bottom: 10px; padding: 8px 12px; border-radius: 12px; font-size: 13.5px; font-weight: 600; background: rgba(5, 15, 40, .55); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, .14); }
-
 /* About */
-.about { padding: 28px 24px; display: grid; gap: 18px; }
-.about p.big { font: 600 clamp(24px, 6.4vw, 32px)/1.2 var(--serif); }
-.about p.big b { color: var(--acc-1); font-weight: 700; }
-.facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-.facts div { padding: 14px; border-radius: 18px; background: rgba(255, 255, 255, .07); border: 1px solid rgba(255, 255, 255, .1); }
-.facts b { display: block; font-size: 15px; }
-.facts span { font-size: 13px; color: var(--muted); }
+.about { padding: 18px; display: grid; gap: 22px; }
+.rav { position: relative; border-radius: 22px; overflow: hidden; aspect-ratio: 4 / 4.4; }
+.rav img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 18%; }
+.rav figcaption { position: absolute; left: 12px; right: 12px; bottom: 12px; padding: 12px 16px; border-radius: 16px; background: rgba(5, 15, 40, .55); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border: 1px solid rgba(255, 255, 255, .16); display: grid; }
+.rav figcaption b { font-size: 17px; }
+.rav figcaption span { font-size: 14px; color: var(--muted); }
+.about-text { display: grid; gap: 14px; padding: 0 6px 6px; }
+.about-text .lead { font-size: clamp(22px, 5.6vw, 28px); font-weight: 700; line-height: 1.2; letter-spacing: -.01em; }
+.about-text p { font-size: 17px; color: var(--muted); }
+.expect { list-style: none; display: grid; gap: 10px; margin-top: 6px; }
+.expect li { display: flex; gap: 14px; align-items: center; padding: 14px; border-radius: 18px; background: rgba(255, 255, 255, .07); border: 1px solid rgba(255, 255, 255, .1); }
+.expect .ic { flex: none; display: grid; place-items: center; width: 42px; height: 42px; border-radius: 13px; background: rgba(247, 226, 174, .14); color: var(--acc-1); }
+.expect b { display: block; font-size: 16px; }
+.expect span:not(.ic) { font-size: 14.5px; color: var(--muted); }
+
+/* Visit invitation */
+.come { display: grid; }
+.come img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
+.come-text { padding: 22px; display: grid; gap: 8px; justify-items: start; }
+.come h2 { font: 700 clamp(30px, 8vw, 46px)/1.02 var(--serif); }
+.come p { color: var(--muted); font-size: 17px; }
+.come .btn { margin-top: 10px; }
 
 /* Give */
 .give { display: grid; gap: 12px; }
@@ -205,10 +212,11 @@ section.block { margin-top: 64px; }
   .live { grid-template-columns: 1.4fr 1fr; align-items: stretch; }
   .live .pair { grid-template-columns: 1fr; }
   section.block { margin-top: 96px; }
-  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
-  .split > section.block { margin-top: 0; }
-  .split-wrap { margin-top: 96px; }
-  .gallery { grid-template-rows: 240px 240px; }
+  .about { grid-template-columns: 380px 1fr; padding: 22px; gap: 32px; align-items: center; }
+  .rav { aspect-ratio: 4 / 5; }
+  .come { grid-template-columns: 1.1fr 1fr; align-items: center; }
+  .come img { aspect-ratio: auto; height: 100%; min-height: 420px; }
+  .come-text { padding: 40px; }
   .give { grid-template-columns: repeat(3, 1fr); }
   .way { align-content: start; }
 }
@@ -314,31 +322,35 @@ section.block { margin-top: 64px; }
       <div class="news" id="news-list"></div>
     </section>
 
-    <div class="split-wrap">
-    <div class="split">
-      <section class="block reveal" id="about" aria-labelledby="about-h">
-        <div class="head"><h2 id="about-h">Who we are</h2></div>
-        <div class="glass about">
-          <p class="big"><b>Ateret</b> means crown. Ours is the young community of Haichal Moshe, a Persian-Jewish kehilla in Tarzana, led by <b>Rabbi Loloyan</b>.</p>
-          <p style="color:var(--muted)">We daven by the rulings of Maran Rabbi Ovadia Yosef, learn together through the week, and open the doors early every weekday morning. Come for Shacharit, stay for breakfast.</p>
-          <div class="facts">
-            <div><b>Encino</b><span>Ventura Blvd</span></div>
-            <div><b>Haichal Moshe</b><span>Our kehilla</span></div>
-            <div><b>Rabbi Loloyan</b><span>Our rav</span></div>
-          </div>
+    <section class="block reveal" id="about" aria-labelledby="about-h">
+      <div class="head"><h2 id="about-h">Who we are</h2></div>
+      <div class="glass about">
+        <figure class="rav">
+          <img src="/assets/images/home/rabbi.jpg" width="700" height="960" loading="lazy" alt="Rabbi Loloyan">
+          <figcaption><b>Rabbi Loloyan</b><span>Rav of Ateret Marjan</span></figcaption>
+        </figure>
+        <div class="about-text">
+          <p class="lead">A young Sephardi minyan in the heart of Encino.</p>
+          <p>Ateret Marjan is the youth congregation of Haichal Moshe, led by Rabbi Loloyan. We daven every day, learn together during the week, and come together for Shabbat, shiurim and community events. We follow the rulings of Maran Rabbi Ovadia Yosef.</p>
+          <ul class="expect">
+            <li><span class="ic"><svg class="i"><use href="#i-clock"/></svg></span><div><b>Every day</b><span>Shacharit at 6:30 AM, Mincha and Arvit each evening</span></div></li>
+            <li><span class="ic"><svg class="i"><use href="#i-flame"/></svg></span><div><b>Shabbat</b><span>Two Shacharit minyanim, shiurim and Seudat Shelishit</span></div></li>
+            <li><span class="ic"><svg class="i"><use href="#i-cup"/></svg></span><div><b>Sunday</b><span>Shacharit at 8:45 AM, then breakfast together</span></div></li>
+          </ul>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <section class="block reveal" aria-labelledby="life-h">
-        <div class="head"><h2 id="life-h">Our community</h2></div>
-        <div class="gallery">
-          <figure class="glass"><img src="/assets/images/home/breakfast.jpg" width="1200" height="1600" loading="lazy" alt="Trays of burekas, eggs and vegetables for Sunday breakfast"><figcaption>Sunday breakfast</figcaption></figure>
-          <figure class="glass"><img src="/assets/images/home/courtyard.jpg" width="1600" height="889" loading="lazy" alt="The courtyard at night under string lights"><figcaption>The courtyard</figcaption></figure>
-          <figure class="glass"><img src="/assets/images/home/lounge.jpg" width="2000" height="500" loading="lazy" alt="The lounge chandelier and framed sayings" style="object-position:40% 50%"><figcaption>The lounge</figcaption></figure>
+    <section class="block reveal" aria-labelledby="come-h">
+      <div class="glass come">
+        <img src="/assets/images/home/breakfast.jpg" width="1200" height="1600" loading="lazy" alt="Trays of burekas, eggs and vegetables for Sunday breakfast">
+        <div class="come-text">
+          <h2 id="come-h">Come for Shacharit. Stay for breakfast.</h2>
+          <p>Every Sunday at 8:45 AM. Bring a friend.</p>
+          <a class="btn btn-gold" href="https://maps.google.com/?q=18042+Ventura+Blvd,+Encino,+CA+91316" target="_blank" rel="noopener"><svg class="i"><use href="#i-pin"/></svg>Get directions</a>
         </div>
-      </section>
-    </div>
-    </div>
+      </div>
+    </section>
 
     <section class="block reveal" id="give" aria-labelledby="give-h">
       <div class="head"><h2 id="give-h">Support the shul</h2></div>

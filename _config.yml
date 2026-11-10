@@ -16,7 +16,7 @@ defaults:
     values:
       layout: "default"
 
-# The TV app source is built into /tv by the GitHub Action; don't publish the source.
+# The TV app source is built into /tv and /zmanim by the GitHub Action; don't publish the source.
 exclude:
   - tv-app
   - firebase
